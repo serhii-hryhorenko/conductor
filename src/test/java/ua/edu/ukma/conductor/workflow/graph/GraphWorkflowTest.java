@@ -7,9 +7,12 @@ import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.task.ValueObject;
+import ua.edu.ukma.conductor.task.Void;
 import ua.edu.ukma.conductor.workflow.TestState;
 import ua.edu.ukma.conductor.workflow.TestStateProjection;
 import ua.edu.ukma.conductor.workflow.Workflow;
+import ua.edu.ukma.conductor.workflow.Workflows;
 import ua.edu.ukma.conductor.workflow.step.Step;
 
 import java.util.concurrent.Executors;
@@ -22,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static ua.edu.ukma.conductor.observer.TestObserver.assertions;
+import static ua.edu.ukma.conductor.task.ValueObject.wrap;
 import static ua.edu.ukma.conductor.workflow.StateMappers.noPayload;
 import static ua.edu.ukma.conductor.workflow.StateMappers.wholeState;
 import static ua.edu.ukma.conductor.workflow.graph.GraphWorkflowBuilder.thatDependsOn;
@@ -56,13 +60,13 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 (observer, state) -> assertThat(state).isEqualTo(thirdStepResult)
         );
 
-        Step<String, TestState, TestStateProjection> firstStep = Step.<String, TestState, TestStateProjection>forTask(payload -> Result.of(firstStepResult))
+        Step<ValueObject<String>, TestState, TestStateProjection> firstStep = Step.<ValueObject<String>, TestState, TestStateProjection>forTask(payload -> Result.of(wrap(firstStepResult)))
                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                .reducingState(TestState::setName)
+                .reducingState((state, name) -> state.setName(name.value()))
                 .create();
-        Step<Integer, TestState, Void> secondStep = Step.<Integer, TestState, Void>forTask(unused -> Result.of(secondStepResult))
+        Step<ValueObject<Integer>, TestState, Void> secondStep = Step.<ValueObject<Integer>, TestState, Void>forTask(unused -> Result.of(wrap(secondStepResult)))
                 .thatAccepts(noPayload())
-                .reducingState(TestState::setAge)
+                .reducingState((state, age) -> state.setAge(age.value()))
                 .create();
         Step<TestState, TestState, TestState> thirdStep = Step.<TestState, TestState, TestState>forTask(thirdTask)
                 .thatAccepts(wholeState())
@@ -73,7 +77,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .withSuccessHandler(successHandler)
                 .create();
 
-        Workflow<TestState> workflow = new GraphWorkflowBuilder<>(firstStep)
+        Workflow<TestState> workflow = Workflows.builder(firstStep)
                 .addStep(thirdStep, thatDependsOn(firstStep, secondStep))
                 .addStep(secondStep, thatDependsOn(firstStep))
                 .attachObservers(testStateTestObserver)

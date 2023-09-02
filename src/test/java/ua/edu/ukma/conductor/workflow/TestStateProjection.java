@@ -1,13 +1,6 @@
 package ua.edu.ukma.conductor.workflow;
 
-public class TestStateProjection {
-    private final String name;
+import ua.edu.ukma.conductor.task.PayloadType;
 
-    public TestStateProjection(String name) {
-        this.name = name;
-    }
-
-    public String name() {
-        return name;
-    }
+public record TestStateProjection(String name) implements PayloadType {
 }

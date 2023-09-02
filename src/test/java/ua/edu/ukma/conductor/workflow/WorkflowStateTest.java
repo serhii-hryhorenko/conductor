@@ -12,7 +12,6 @@ class WorkflowStateTest {
     @Test
     void testCopyMethod() {
         TestState initialState = new TestState("test", 19);
-
         TestState copiedState = initialState.copy();
 
         assertNotSame(initialState, copiedState);

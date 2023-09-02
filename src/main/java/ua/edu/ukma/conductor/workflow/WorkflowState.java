@@ -2,11 +2,11 @@ package ua.edu.ukma.conductor.workflow;
 
 import java.util.function.Consumer;
 
-public abstract class WorkflowState<I> {
-    protected abstract I copy();
+public abstract class WorkflowState<S> {
+    protected abstract S copy();
 
-    public I reduce(Consumer<I> stateReducer) {
-        I copy = copy();
+    public S reduce(Consumer<S> stateReducer) {
+        S copy = copy();
         stateReducer.accept(copy);
 
         return copy;

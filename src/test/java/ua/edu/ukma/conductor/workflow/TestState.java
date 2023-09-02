@@ -1,6 +1,9 @@
 package ua.edu.ukma.conductor.workflow;
 
-public class TestState extends WorkflowState<TestState> {
+import ua.edu.ukma.conductor.task.PayloadType;
+import ua.edu.ukma.conductor.task.ResultType;
+
+public class TestState extends WorkflowState<TestState> implements PayloadType, ResultType {
     private String name;
     private int age;
 

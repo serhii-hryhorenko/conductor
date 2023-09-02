@@ -1,7 +1,9 @@
 package ua.edu.ukma.conductor.workflow;
 
 
+import ua.edu.ukma.conductor.task.PayloadType;
 import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.task.ResultType;
 import ua.edu.ukma.conductor.workflow.step.Step;
 
 import java.util.List;
@@ -18,7 +20,7 @@ public abstract class Workflow<S extends WorkflowState<S>> {
         S currentState = initialState;
         observers.forEach(observer -> observer.observe(initialState.copy()));
 
-        for (Optional<Step<?, S, ?>> nextStep = nextStep(); nextStep.isPresent(); nextStep = nextStep()) {
+        for (Optional<Step<ResultType, S, PayloadType>> nextStep = nextStep(); nextStep.isPresent(); nextStep = nextStep()) {
             Step<?, S, ?> currentStep = nextStep.get();
 
             Result<S> reducedState = currentStep.execute(currentState);
@@ -34,5 +36,5 @@ public abstract class Workflow<S extends WorkflowState<S>> {
         return Result.of(currentState);
     }
 
-    protected abstract Optional<Step<?, S, ?>> nextStep();
+    protected abstract Optional<Step<ResultType, S, PayloadType>> nextStep();
 }

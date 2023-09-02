@@ -7,6 +7,8 @@ import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.task.ValueObject;
+import ua.edu.ukma.conductor.task.Void;
 import ua.edu.ukma.conductor.workflow.*;
 import ua.edu.ukma.conductor.workflow.step.Step;
 
@@ -20,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static ua.edu.ukma.conductor.observer.TestObserver.assertions;
+import static ua.edu.ukma.conductor.task.ValueObject.wrap;
 
 class LinearWorkflowTest extends DefaultTestConfiguration {
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -52,14 +55,14 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.linearWorkflow(
-                        Step.<String, TestState, TestStateProjection>forTask(payload -> Result.of(firstStepResult))
+                        Step.<ValueObject<String>, TestState, TestStateProjection>forTask(payload -> Result.of(wrap(firstStepResult)))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                                .reducingState(TestState::setName)
+                                .reducingState((state, name) -> state.setName(name.value()))
                                 .create(),
 
-                        Step.<Integer, TestState, Void>forTask(unused -> Result.of(secondStepResult))
+                        Step.<ValueObject<Integer>, TestState, Void>forTask(unused -> Result.of(wrap(secondStepResult)))
                                 .thatAccepts(StateMappers.noPayload())
-                                .reducingState(TestState::setAge)
+                                .reducingState((state, age) -> state.setAge(age.value()))
                                 .create(),
 
                         Step.<TestState, TestState, TestState>forTask(thirdTask)
