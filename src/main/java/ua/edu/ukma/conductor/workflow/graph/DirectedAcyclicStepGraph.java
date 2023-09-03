@@ -1,50 +1,44 @@
 package ua.edu.ukma.conductor.workflow.graph;
 
-import ua.edu.ukma.conductor.task.PayloadType;
-import ua.edu.ukma.conductor.task.ResultType;
 import ua.edu.ukma.conductor.workflow.WorkflowState;
-import ua.edu.ukma.conductor.workflow.step.Step;
+import ua.edu.ukma.conductor.workflow.WorkflowStep;
 
 import java.util.*;
 
 public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
-    private final Map<Step<ResultType, S, PayloadType>, List<Step<ResultType, S, PayloadType>>> adjacencyList;
-    private final Step<ResultType, S, PayloadType> startVertex;
+    private final Map<WorkflowStep<S>, List<WorkflowStep<S>>> adjacencyList;
+    private final WorkflowStep<S> startVertex;
 
-    DirectedAcyclicStepGraph(Step<? extends ResultType, S, ? extends PayloadType> firstStep) {
+    DirectedAcyclicStepGraph(WorkflowStep<S> firstStep) {
         this.adjacencyList = new HashMap<>();
-        Step<ResultType, S, PayloadType> initialStep = castStep(firstStep);
-        this.startVertex = initialStep;
-        addVertex(initialStep);
+        this.startVertex = firstStep;
+        addVertex(firstStep);
     }
 
-    private void addVertex(Step<ResultType, S, PayloadType> step) {
-        adjacencyList.put(castStep(step), new ArrayList<>());
+    private void addVertex(WorkflowStep<S> step) {
+        adjacencyList.put(step, new ArrayList<>());
     }
 
-    void addEdge(Step<? extends ResultType, S, ? extends PayloadType> from,
-                 Step<? extends ResultType, S, ? extends PayloadType> to) {
-        Step<ResultType, S, PayloadType> castedFrom = castStep(from);
-        Step<ResultType, S, PayloadType> castedTo = castStep(to);
-
-        if (!adjacencyList.containsKey(castedFrom)) {
-            addVertex(castedFrom);
+    void addEdge(WorkflowStep<S> from,
+                 WorkflowStep<S> to) {
+        if (!adjacencyList.containsKey(from)) {
+            addVertex(from);
         }
 
-        if (!adjacencyList.containsKey(castedTo)) {
-            addVertex(castedTo);
+        if (!adjacencyList.containsKey(to)) {
+            addVertex(to);
         }
 
-        adjacencyList.get(castedFrom).add(castedTo);
+        adjacencyList.get(from).add(to);
 
         if (hasCycle()) {
             throw new IllegalArgumentException("Adding this edge would create a cycle in the graph.");
         }
     }
 
-    List<Step<ResultType, S, PayloadType>> topologicalSort() {
-        List<Step<ResultType, S, PayloadType>> sortedSteps = new ArrayList<>();
-        Set<Step<ResultType, S, PayloadType>> visited = new HashSet<>();
+    List<WorkflowStep<S>> topologicalSort() {
+        List<WorkflowStep<S>> sortedSteps = new ArrayList<>();
+        Set<WorkflowStep<S>> visited = new HashSet<>();
 
         topologicalSortHelper(startVertex, visited, sortedSteps);
 
@@ -52,10 +46,12 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         return sortedSteps;
     }
 
-    private void topologicalSortHelper(Step<ResultType, S, PayloadType> step, Set<Step<ResultType, S, PayloadType>> visited, List<Step<ResultType, S, PayloadType>> sortedSteps) {
+    private void topologicalSortHelper(WorkflowStep<S> step,
+                                       Set<WorkflowStep<S>> visited,
+                                       List<WorkflowStep<S>> sortedSteps) {
         visited.add(step);
 
-        for (Step<ResultType, S, PayloadType> adjacentStep : adjacencyList.getOrDefault(step, new ArrayList<>())) {
+        for (WorkflowStep<S> adjacentStep : adjacencyList.getOrDefault(step, new ArrayList<>())) {
             if (!visited.contains(adjacentStep)) {
                 topologicalSortHelper(adjacentStep, visited, sortedSteps);
             }
@@ -65,15 +61,15 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     }
 
     private boolean hasCycle() {
-        HashSet<Step<ResultType, S, PayloadType>> visited = new HashSet<>();
+        HashSet<WorkflowStep<S>> visited = new HashSet<>();
 
         return hasCycle(startVertex, visited);
     }
 
-    private boolean hasCycle(Step<ResultType, S, PayloadType> step,
-                             HashSet<Step<ResultType, S, PayloadType>> visited) {
+    private boolean hasCycle(WorkflowStep<S> step,
+                             HashSet<WorkflowStep<S>> visited) {
         visited.add(step);
-        List<Step<ResultType, S, PayloadType>> neighbors = adjacencyList.get(step);
+        List<WorkflowStep<S>> neighbors = adjacencyList.get(step);
 
         for (var neighbor : neighbors) {
             if (visited.contains(neighbor)) {
@@ -84,10 +80,5 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         }
 
         return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Step<ResultType, S, PayloadType> castStep(Step<? extends ResultType, S, ? extends PayloadType> step) {
-        return (Step<ResultType, S, PayloadType>) step;
     }
 }

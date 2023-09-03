@@ -4,14 +4,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-public final class AsyncTask<V extends ResultType, P extends PayloadType> implements Task<V, P> {
+public final class AsyncTask<V, P> implements Task<V, P> {
     private final Supplier<Future<V>> valueSupplier;
 
     private AsyncTask(Supplier<Future<V>> valueSupplier) {
         this.valueSupplier = valueSupplier;
     }
 
-    public static <V extends ResultType, P extends PayloadType>
+    public static <V, P>
     AsyncTask<V, P> fromFuture(Supplier<Future<V>> valueSupplier) {
         return new AsyncTask<>(valueSupplier);
     }

@@ -2,11 +2,10 @@ package ua.edu.ukma.conductor.workflow.step;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ua.edu.ukma.conductor.task.PayloadType;
-import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.task.ResultType;
 import ua.edu.ukma.conductor.task.Task;
+import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.workflow.WorkflowState;
+import ua.edu.ukma.conductor.workflow.WorkflowStep;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -15,7 +14,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Step<V extends ResultType, S extends WorkflowState<S>, P extends PayloadType> {
+public class Step<S extends WorkflowState<S>, P, V> implements WorkflowStep<S> {
     private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
     private final UUID uuid = UUID.randomUUID();
 
@@ -41,8 +40,8 @@ public class Step<V extends ResultType, S extends WorkflowState<S>, P extends Pa
         this.fallbackHandler = fallbackHandler;
     }
 
-    public static <V extends ResultType, S extends WorkflowState<S>, P extends PayloadType>
-    StepBuilder<V, S, P> forTask(Task<V, P> task) {
+    public static <V, S extends WorkflowState<S>, P>
+    StepBuilder<S, V, P> forTask(Task<V, P> task) {
         return new StepBuilder<>(task);
     }
 

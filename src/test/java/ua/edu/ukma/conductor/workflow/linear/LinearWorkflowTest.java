@@ -7,8 +7,6 @@ import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.task.ValueObject;
-import ua.edu.ukma.conductor.task.Void;
 import ua.edu.ukma.conductor.workflow.*;
 import ua.edu.ukma.conductor.workflow.step.Step;
 
@@ -22,7 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static ua.edu.ukma.conductor.observer.TestObserver.assertions;
-import static ua.edu.ukma.conductor.task.ValueObject.wrap;
+import static ua.edu.ukma.conductor.workflow.StateMappers.noPayload;
+import static ua.edu.ukma.conductor.workflow.StateMappers.wholeState;
 
 class LinearWorkflowTest extends DefaultTestConfiguration {
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -55,18 +54,16 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.linearWorkflow(
-                        Step.<ValueObject<String>, TestState, TestStateProjection>forTask(payload -> Result.of(wrap(firstStepResult)))
+                        Step.<String, TestState, TestStateProjection>forTask(payload -> Result.of(firstStepResult))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                                .reducingState((state, name) -> state.setName(name.value()))
+                                .reducingState(TestState::setName)
                                 .create(),
-
-                        Step.<ValueObject<Integer>, TestState, Void>forTask(unused -> Result.of(wrap(secondStepResult)))
-                                .thatAccepts(StateMappers.noPayload())
-                                .reducingState((state, age) -> state.setAge(age.value()))
+                        Step.<Integer, TestState, Void>forTask(unused -> Result.of(secondStepResult))
+                                .thatAccepts(noPayload())
+                                .reducingState(TestState::setAge)
                                 .create(),
-
                         Step.<TestState, TestState, TestState>forTask(thirdTask)
-                                .thatAccepts(StateMappers.wholeState())
+                                .thatAccepts(wholeState())
                                 .reducingState((state, value) -> {
                                     state.setName(value.name());
                                     state.setAge(value.age());
@@ -76,7 +73,7 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
                 ).attachObservers(testStateTestObserver)
                 .build();
 
-        workflow.start(initialState);
+        workflow.execute(initialState);
 
         testStateTestObserver.checkExecutedSteps();
         verify(successHandler, times(1)).accept(any());

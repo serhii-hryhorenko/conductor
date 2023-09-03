@@ -1,7 +1,5 @@
 package ua.edu.ukma.conductor.workflow;
 
-import ua.edu.ukma.conductor.task.Void;
-
 import java.util.function.Function;
 
 public class StateMappers {

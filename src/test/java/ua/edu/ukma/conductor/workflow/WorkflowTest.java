@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
-import ua.edu.ukma.conductor.task.PayloadType;
 import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.task.ResultType;
 import ua.edu.ukma.conductor.workflow.step.Step;
 
 import java.util.List;
@@ -18,20 +16,19 @@ import static org.mockito.Mockito.*;
 
 class WorkflowTest extends DefaultTestConfiguration {
     @Mock
-    private Step<ResultType, TestState, PayloadType> step;
+    private WorkflowStep<TestState> step;
     @Mock
     private WorkflowObserver<TestState> observer;
 
+    private final TestState initialState = new TestState("Sarah", 32);
+
     @Test
     void testStartWorkflow() {
+        setupStep();
         ArgumentCaptor<TestState> stateCaptor = ArgumentCaptor.forClass(TestState.class);
-        TestState initialState = new TestState("Sarah", 32);
-
-        when(step.execute(initialState))
-                .thenReturn(Result.of(initialState));
 
         TestWorkflow testWorkflow = new TestWorkflow(step, List.of(observer));
-        testWorkflow.start(initialState);
+        testWorkflow.execute(initialState);
 
         verify(step, times(1)).execute(stateCaptor.capture());
         verify(observer, times(2)).observe(any());
@@ -39,17 +36,35 @@ class WorkflowTest extends DefaultTestConfiguration {
         assertThat(stateCaptor.getValue()).isEqualTo(initialState);
     }
 
+    @Test
+    void testNestedWorkflow() {
+        setupStep();
+
+        TestWorkflow nested = spy(new TestWorkflow(step, List.of(observer)));
+        TestWorkflow workflow = new TestWorkflow(nested, List.of(observer));
+
+        workflow.execute(initialState);
+
+        verify(nested, times(1)).execute(initialState);
+        verify(observer, times(4)).observe(any());
+    }
+
+    private void setupStep() {
+        when(step.execute(initialState))
+                .thenReturn(Result.of(initialState));
+    }
+
     private static class TestWorkflow extends Workflow<TestState> {
         private boolean executedStep;
-        private final Step<ResultType, TestState, PayloadType> testStep;
+        private final WorkflowStep<TestState> testStep;
 
-        public TestWorkflow(Step<ResultType, TestState, PayloadType> testStep, List<WorkflowObserver<TestState>> observers) {
+        public TestWorkflow(WorkflowStep<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
             super(observers);
             this.testStep = testStep;
         }
 
         @Override
-        protected Optional<Step<ResultType, TestState, PayloadType>> nextStep() {
+        protected Optional<WorkflowStep<TestState>> nextStep() {
             if (executedStep) {
                 return Optional.empty();
             }
