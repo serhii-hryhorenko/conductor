@@ -48,13 +48,13 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
         logger.debug("Accepted state payload: {}", state);
 
         P taskPayload = stateProjector.apply(state);
-        Result<V> executionResult = task.execute(taskPayload);
+        Result<V> executionResult = task.submit(taskPayload);
 
         onCompletion(executionResult);
 
         if (executionResult.isOk()) {
             Result<S> reducedState = stateReducerFor(executionResult.value())
-                    .map(state::reduce)
+                    .map(state::mutate)
                     .map(Result::of)
                     .orElseGet(() -> Result.of(state));
 

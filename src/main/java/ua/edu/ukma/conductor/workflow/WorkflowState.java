@@ -5,9 +5,9 @@ import java.util.function.Consumer;
 public abstract class WorkflowState<S> {
     protected abstract S copy();
 
-    public S reduce(Consumer<S> stateReducer) {
+    public S mutate(Consumer<S> stateMutator) {
         S copy = copy();
-        stateReducer.accept(copy);
+        stateMutator.accept(copy);
 
         return copy;
     }

@@ -29,7 +29,7 @@ public final class AsyncTask<V, P> implements Task<P, V> {
     }
 
     @Override
-    public Result<V> execute(P payload) {
+    public Result<V> submit(P payload) {
         Future<V> future = valueSupplier.get();
 
         try {
