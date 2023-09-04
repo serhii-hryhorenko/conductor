@@ -1,26 +1,25 @@
 package ua.edu.ukma.conductor.workflow.graph;
 
+import ua.edu.ukma.conductor.workflow.Step;
 import ua.edu.ukma.conductor.workflow.WorkflowState;
-import ua.edu.ukma.conductor.workflow.WorkflowStep;
 
 import java.util.*;
 
 public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
-    private final Map<WorkflowStep<S>, List<WorkflowStep<S>>> adjacencyList;
-    private final WorkflowStep<S> startVertex;
+    private final Map<Step<S>, List<Step<S>>> adjacencyList;
+    private final Step<S> startVertex;
 
-    DirectedAcyclicStepGraph(WorkflowStep<S> firstStep) {
+    DirectedAcyclicStepGraph(Step<S> firstStep) {
         this.adjacencyList = new HashMap<>();
         this.startVertex = firstStep;
         addVertex(firstStep);
     }
 
-    private void addVertex(WorkflowStep<S> step) {
+    private void addVertex(Step<S> step) {
         adjacencyList.put(step, new ArrayList<>());
     }
 
-    void addEdge(WorkflowStep<S> from,
-                 WorkflowStep<S> to) {
+    void addEdge(Step<S> from, Step<S> to) {
         if (!adjacencyList.containsKey(from)) {
             addVertex(from);
         }
@@ -36,9 +35,9 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         }
     }
 
-    List<WorkflowStep<S>> topologicalSort() {
-        List<WorkflowStep<S>> sortedSteps = new ArrayList<>();
-        Set<WorkflowStep<S>> visited = new HashSet<>();
+    List<Step<S>> topologicalSort() {
+        List<Step<S>> sortedSteps = new ArrayList<>();
+        Set<Step<S>> visited = new HashSet<>();
 
         topologicalSortHelper(startVertex, visited, sortedSteps);
 
@@ -46,12 +45,12 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         return sortedSteps;
     }
 
-    private void topologicalSortHelper(WorkflowStep<S> step,
-                                       Set<WorkflowStep<S>> visited,
-                                       List<WorkflowStep<S>> sortedSteps) {
+    private void topologicalSortHelper(Step<S> step,
+                                       Set<Step<S>> visited,
+                                       List<Step<S>> sortedSteps) {
         visited.add(step);
 
-        for (WorkflowStep<S> adjacentStep : adjacencyList.getOrDefault(step, new ArrayList<>())) {
+        for (Step<S> adjacentStep : adjacencyList.getOrDefault(step, new ArrayList<>())) {
             if (!visited.contains(adjacentStep)) {
                 topologicalSortHelper(adjacentStep, visited, sortedSteps);
             }
@@ -61,15 +60,15 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     }
 
     private boolean hasCycle() {
-        HashSet<WorkflowStep<S>> visited = new HashSet<>();
+        HashSet<Step<S>> visited = new HashSet<>();
 
         return hasCycle(startVertex, visited);
     }
 
-    private boolean hasCycle(WorkflowStep<S> step,
-                             HashSet<WorkflowStep<S>> visited) {
+    private boolean hasCycle(Step<S> step,
+                             HashSet<Step<S>> visited) {
         visited.add(step);
-        List<WorkflowStep<S>> neighbors = adjacencyList.get(step);
+        List<Step<S>> neighbors = adjacencyList.get(step);
 
         for (var neighbor : neighbors) {
             if (visited.contains(neighbor)) {

@@ -3,8 +3,8 @@ package ua.edu.ukma.conductor.workflow.graph;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
+import ua.edu.ukma.conductor.workflow.Step;
 import ua.edu.ukma.conductor.workflow.TestState;
-import ua.edu.ukma.conductor.workflow.WorkflowStep;
 
 import java.util.List;
 
@@ -13,15 +13,15 @@ import static org.junit.Assert.assertThrows;
 
 class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
     @Mock
-    private WorkflowStep<TestState> stepA;
+    private Step<TestState> stepA;
     @Mock
-    private WorkflowStep<TestState> stepB;
+    private Step<TestState> stepB;
     @Mock
-    private WorkflowStep<TestState> stepC;
+    private Step<TestState> stepC;
     @Mock
-    private WorkflowStep<TestState> stepD;
+    private Step<TestState> stepD;
     @Mock
-    private WorkflowStep<TestState> stepE;
+    private Step<TestState> stepE;
 
     private DirectedAcyclicStepGraph<TestState> graph;
 
@@ -37,9 +37,9 @@ class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
     @Test
     void testTopologicalSort() {
         setupAcyclicGraph();
-        List<WorkflowStep<TestState>> sortedSteps = graph.topologicalSort();
+        List<Step<TestState>> sortedSteps = graph.topologicalSort();
 
-        // The correct topological order should be: Step A -> Step B -> Step C -> Step D
+        // The correct topological order should be: A -> B -> C -> D
         assertThat(sortedSteps).containsExactlyElementsIn(List.of(stepA, stepB, stepC, stepD));
     }
 
@@ -48,7 +48,7 @@ class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
         setupAcyclicGraph();
         graph.addEdge(stepD, stepE);
 
-        List<WorkflowStep<TestState>> sortedSteps = graph.topologicalSort();
+        List<Step<TestState>> sortedSteps = graph.topologicalSort();
 
         assertThat(sortedSteps).containsExactlyElementsIn(List.of(stepA, stepB, stepC, stepD, stepE));
     }

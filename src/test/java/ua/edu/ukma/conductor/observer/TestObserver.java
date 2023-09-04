@@ -1,5 +1,6 @@
 package ua.edu.ukma.conductor.observer;
 
+import ua.edu.ukma.conductor.workflow.Workflow;
 import ua.edu.ukma.conductor.workflow.WorkflowObserver;
 import ua.edu.ukma.conductor.workflow.WorkflowState;
 
@@ -26,6 +27,11 @@ public class TestObserver<S extends WorkflowState<S>> implements WorkflowObserve
         return new TestObserver<>(Arrays.stream(assertions).toList());
     }
 
+    public void testWorkflow(Workflow<S> workflow, S initialState) {
+        workflow.execute(initialState);
+        checkExecutedSteps();
+    }
+
     @Override
     public void observe(S workflowState) {
         stepsExecuted++;
@@ -36,7 +42,7 @@ public class TestObserver<S extends WorkflowState<S>> implements WorkflowObserve
         }
     }
 
-    public void checkExecutedSteps() {
+    private void checkExecutedSteps() {
         if (badConfiguration()) {
             fail("""
                     Number of executed steps doesn't match the number of assertions.
@@ -45,8 +51,6 @@ public class TestObserver<S extends WorkflowState<S>> implements WorkflowObserve
                     Executed Assertions: %d, Executed Steps: %d
                     """.formatted(executedAssertionsCount, stepsExecuted));
         }
-
-
     }
 
     private boolean hasAssertionsToExecute() {

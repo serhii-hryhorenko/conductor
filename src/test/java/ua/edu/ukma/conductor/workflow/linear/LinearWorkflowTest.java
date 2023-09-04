@@ -8,7 +8,6 @@ import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.workflow.*;
-import ua.edu.ukma.conductor.workflow.step.Step;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,28 +53,26 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.linearWorkflow(
-                        Step.<String, TestState, TestStateProjection>forTask(payload -> Result.of(firstStepResult))
+                        WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                                .reducingState(TestState::setName)
-                                .create(),
-                        Step.<Integer, TestState, Void>forTask(unused -> Result.of(secondStepResult))
+                                .reducingState(TestState::setName),
+
+                        WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
                                 .thatAccepts(noPayload())
-                                .reducingState(TestState::setAge)
-                                .create(),
-                        Step.<TestState, TestState, TestState>forTask(thirdTask)
+                                .reducingState(TestState::setAge),
+
+                        WorkflowStep.<TestState, TestState, TestState>forTask(thirdTask)
                                 .thatAccepts(wholeState())
                                 .reducingState((state, value) -> {
                                     state.setName(value.name());
                                     state.setAge(value.age());
                                 })
                                 .withSuccessHandler(successHandler)
-                                .create()
                 ).attachObservers(testStateTestObserver)
                 .build();
 
-        workflow.execute(initialState);
+        testStateTestObserver.testWorkflow(workflow, initialState);
 
-        testStateTestObserver.checkExecutedSteps();
         verify(successHandler, times(1)).accept(any());
     }
 }

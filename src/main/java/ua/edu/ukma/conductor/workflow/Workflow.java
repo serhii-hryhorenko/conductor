@@ -6,7 +6,7 @@ import ua.edu.ukma.conductor.task.Result;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class Workflow<S extends WorkflowState<S>> implements WorkflowStep<S> {
+public abstract class Workflow<S extends WorkflowState<S>> extends Step<S> {
     private final List<WorkflowObserver<S>> observers;
 
     protected Workflow(List<WorkflowObserver<S>> observers) {
@@ -18,8 +18,8 @@ public abstract class Workflow<S extends WorkflowState<S>> implements WorkflowSt
         S currentState = initialState;
         observeState(initialState);
 
-        for (Optional<WorkflowStep<S>> nextStep = nextStep(); nextStep.isPresent(); nextStep = nextStep()) {
-            WorkflowStep<S> currentStep = nextStep.get();
+        for (Optional<Step<S>> step = nextStep(); step.isPresent(); step = nextStep()) {
+            Step<S> currentStep = step.get();
             Result<S> reducedState = currentStep.execute(currentState);
 
             if (reducedState.hasError()) {
@@ -33,7 +33,7 @@ public abstract class Workflow<S extends WorkflowState<S>> implements WorkflowSt
         return Result.of(currentState);
     }
 
-    protected abstract Optional<WorkflowStep<S>> nextStep();
+    protected abstract Optional<Step<S>> nextStep();
 
     private void observeState(S state) {
         observers.forEach(observer -> observer.observe(state.copy()));

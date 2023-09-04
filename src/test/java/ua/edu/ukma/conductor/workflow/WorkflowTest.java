@@ -5,7 +5,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.workflow.step.Step;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,7 @@ import static org.mockito.Mockito.*;
 
 class WorkflowTest extends DefaultTestConfiguration {
     @Mock
-    private WorkflowStep<TestState> step;
+    private Step<TestState> step;
     @Mock
     private WorkflowObserver<TestState> observer;
 
@@ -56,15 +55,15 @@ class WorkflowTest extends DefaultTestConfiguration {
 
     private static class TestWorkflow extends Workflow<TestState> {
         private boolean executedStep;
-        private final WorkflowStep<TestState> testStep;
+        private final Step<TestState> testStep;
 
-        public TestWorkflow(WorkflowStep<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
+        public TestWorkflow(Step<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
             super(observers);
             this.testStep = testStep;
         }
 
         @Override
-        protected Optional<WorkflowStep<TestState>> nextStep() {
+        protected Optional<Step<TestState>> nextStep() {
             if (executedStep) {
                 return Optional.empty();
             }

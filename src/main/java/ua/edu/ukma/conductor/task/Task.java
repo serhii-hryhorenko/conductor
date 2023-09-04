@@ -1,6 +1,6 @@
 package ua.edu.ukma.conductor.task;
 
 @FunctionalInterface
-public interface Task<V, P> {
+public interface Task<P, V> {
     Result<V> execute(P payload);
 }

@@ -7,11 +7,7 @@ import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.workflow.TestState;
-import ua.edu.ukma.conductor.workflow.TestStateProjection;
-import ua.edu.ukma.conductor.workflow.Workflow;
-import ua.edu.ukma.conductor.workflow.Workflows;
-import ua.edu.ukma.conductor.workflow.step.Step;
+import ua.edu.ukma.conductor.workflow.*;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -57,22 +53,22 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 (observer, state) -> assertThat(state).isEqualTo(thirdStepResult)
         );
 
-        Step<TestState, TestStateProjection, String> firstStep = Step.<String, TestState, TestStateProjection>forTask(payload -> Result.of(firstStepResult))
+        var firstStep = WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
                 .thatAccepts(state -> new TestStateProjection(state.name()))
                 .reducingState(TestState::setName)
-                .create();
-        Step<TestState, Void, Integer> secondStep = Step.<Integer, TestState, Void>forTask(unused -> Result.of(secondStepResult))
+                .build();
+        var secondStep = WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
                 .thatAccepts(noPayload())
                 .reducingState(TestState::setAge)
-                .create();
-        Step<TestState, TestState, TestState> thirdStep = Step.<TestState, TestState, TestState>forTask(thirdTask)
+                .build();
+        var thirdStep = WorkflowStep.<TestState, TestState, TestState>forTask(thirdTask)
                 .thatAccepts(wholeState())
                 .reducingState((state, value) -> {
                     state.setName(value.name());
                     state.setAge(value.age());
                 })
                 .withSuccessHandler(successHandler)
-                .create();
+                .build();
 
         Workflow<TestState> workflow = Workflows.builder(firstStep)
                 .addStep(thirdStep, thatDependsOn(firstStep, secondStep))
@@ -80,10 +76,8 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .attachObservers(testStateTestObserver)
                 .build();
 
+        testStateTestObserver.testWorkflow(workflow, initialState);
 
-        workflow.execute(initialState);
-
-        testStateTestObserver.checkExecutedSteps();
         verify(successHandler, times(1)).accept(any());
     }
 }
