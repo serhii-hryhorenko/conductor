@@ -7,7 +7,7 @@ import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.Workflows;
 import ua.edu.ukma.conductor.observer.TestObserver;
 import ua.edu.ukma.conductor.step.workflow.Workflow;
-import ua.edu.ukma.conductor.step.workflow.WorkflowStep;
+import ua.edu.ukma.conductor.step.workflow.Step;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.step.workflow.TestState;
@@ -57,15 +57,15 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.linearWorkflow(
-                        WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
+                        Step.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
                                 .reducesState(TestState::setName),
 
-                        WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
+                        Step.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
                                 .thatAccepts(noPayload())
                                 .reducesState(TestState::setAge),
 
-                        WorkflowStep.<TestState, TestState, TestState>forTask(thirdTask)
+                        Step.<TestState, TestState, TestState>forTask(thirdTask)
                                 .thatAccepts(workflowState())
                                 .reducesState((state, value) -> {
                                     state.setName(value.name());

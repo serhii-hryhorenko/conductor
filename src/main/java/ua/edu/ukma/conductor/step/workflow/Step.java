@@ -1,7 +1,6 @@
 package ua.edu.ukma.conductor.step.workflow;
 
 import ua.edu.ukma.conductor.state.WorkflowState;
-import ua.edu.ukma.conductor.step.Step;
 import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.task.Task;
 
@@ -12,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
+public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conductor.step.WorkflowStep<S> {
     private final UUID uuid = UUID.randomUUID();
 
     private final Task<P, V> task;
@@ -22,11 +21,11 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
     private final Consumer<V> successHandler;
     private final Consumer<Throwable> errorHandler;
 
-    protected WorkflowStep(Task<P, V> task,
-                           Function<S, P> stateProjector,
-                           BiConsumer<S, V> stateReducer,
-                           Consumer<V> successHandler,
-                           Consumer<Throwable> errorHandler) {
+    protected Step(Task<P, V> task,
+                   Function<S, P> stateProjector,
+                   BiConsumer<S, V> stateReducer,
+                   Consumer<V> successHandler,
+                   Consumer<Throwable> errorHandler) {
         this.task = task;
         this.stateProjector = stateProjector;
         this.stateReducer = stateReducer;
@@ -35,8 +34,8 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
     }
 
     public static <S extends WorkflowState<S>, P, V>
-    WorkflowStepBuilder<S, P, V> forTask(Task<P, V> task) {
-        return new WorkflowStepBuilder<>(task);
+    StepBuilder<S, P, V> forTask(Task<P, V> task) {
+        return new StepBuilder<>(task);
     }
 
     public Result<S> execute(S state) {

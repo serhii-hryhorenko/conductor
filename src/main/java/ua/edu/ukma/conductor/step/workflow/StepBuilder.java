@@ -1,8 +1,8 @@
 package ua.edu.ukma.conductor.step.workflow;
 
 import ua.edu.ukma.conductor.state.WorkflowState;
-import ua.edu.ukma.conductor.step.Step;
-import ua.edu.ukma.conductor.step.StepOrBuilder;
+import ua.edu.ukma.conductor.step.WorkflowStep;
+import ua.edu.ukma.conductor.step.WorkflowStepOrBuilder;
 import ua.edu.ukma.conductor.task.Task;
 
 import java.util.Objects;
@@ -10,44 +10,44 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends StepOrBuilder<S> {
+public class StepBuilder<S extends WorkflowState<S>, P, V> extends WorkflowStepOrBuilder<S> {
     private final Task<P, V> task;
     private Function<S, P> stateMapper;
     private BiConsumer<S, V> stateReducer;
     private Consumer<V> successHandler;
     private Consumer<Throwable> errorHandler;
 
-    WorkflowStepBuilder(Task<P, V> task) {
+    StepBuilder(Task<P, V> task) {
         this.task = task;
     }
 
-    public WorkflowStepBuilder<S, P, V> thatAccepts(Function<S, P> stateMapper) {
+    public StepBuilder<S, P, V> thatAccepts(Function<S, P> stateMapper) {
         this.stateMapper = stateMapper;
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> reducesState(BiConsumer<S, V> stateReducer) {
+    public StepBuilder<S, P, V> reducesState(BiConsumer<S, V> stateReducer) {
         this.stateReducer = stateReducer;
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> onSuccess(Consumer<V> successHandler) {
+    public StepBuilder<S, P, V> onSuccess(Consumer<V> successHandler) {
         this.successHandler = successHandler;
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
+    public StepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
         this.errorHandler = failHandler;
         return this;
     }
 
-    public WorkflowStep<S, P, V> build() {
+    public Step<S, P, V> build() {
         Objects.requireNonNull(stateMapper);
-        return new WorkflowStep<>(task, stateMapper, stateReducer, successHandler, errorHandler);
+        return new Step<>(task, stateMapper, stateReducer, successHandler, errorHandler);
     }
 
     @Override
-    protected Step<S> toStep() {
+    protected WorkflowStep<S> toStep() {
         return build();
     }
 }

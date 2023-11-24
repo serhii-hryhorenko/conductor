@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
-import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.task.Result;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 class WorkflowTest extends DefaultTestConfiguration {
     @Mock
-    private Step<TestState> step;
+    private WorkflowStep<TestState> step;
     @Mock
     private WorkflowObserver<TestState> observer;
 
@@ -56,15 +56,15 @@ class WorkflowTest extends DefaultTestConfiguration {
 
     private static class TestWorkflow extends Workflow<TestState> {
         private boolean executedStep;
-        private final Step<TestState> testStep;
+        private final WorkflowStep<TestState> testStep;
 
-        public TestWorkflow(Step<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
+        public TestWorkflow(WorkflowStep<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
             super(observers);
             this.testStep = testStep;
         }
 
         @Override
-        protected Optional<Step<TestState>> nextStep() {
+        protected Optional<WorkflowStep<TestState>> nextStep() {
             if (executedStep) {
                 return Optional.empty();
             }

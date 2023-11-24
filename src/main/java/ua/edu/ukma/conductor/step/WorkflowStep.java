@@ -10,11 +10,11 @@ import ua.edu.ukma.conductor.task.Result;
  *
  * @param <S> state type
  */
-public abstract class Step<S extends WorkflowState<S>> extends StepOrBuilder<S> {
+public abstract class WorkflowStep<S extends WorkflowState<S>> extends WorkflowStepOrBuilder<S> {
     public abstract Result<S> execute(S initialState);
 
     @Override
-    protected Step<S> toStep() {
+    protected WorkflowStep<S> toStep() {
         return this;
     }
 }

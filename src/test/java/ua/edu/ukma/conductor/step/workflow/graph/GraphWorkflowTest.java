@@ -6,12 +6,12 @@ import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.Workflows;
 import ua.edu.ukma.conductor.observer.TestObserver;
-import ua.edu.ukma.conductor.step.workflow.Workflow;
-import ua.edu.ukma.conductor.step.workflow.WorkflowStep;
-import ua.edu.ukma.conductor.task.AsyncTask;
-import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.step.workflow.Step;
 import ua.edu.ukma.conductor.step.workflow.TestState;
 import ua.edu.ukma.conductor.step.workflow.TestStateProjection;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.task.AsyncTask;
+import ua.edu.ukma.conductor.task.Result;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +28,8 @@ import static ua.edu.ukma.conductor.state.StateMappers.workflowState;
 import static ua.edu.ukma.conductor.step.workflow.graph.GraphWorkflowBuilder.thatDependsOn;
 
 class GraphWorkflowTest extends DefaultTestConfiguration {
-    private static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService scheduledExecutorService =
+        Executors.newSingleThreadScheduledExecutor();
 
     @Mock
     private Consumer<TestState> successHandler;
@@ -57,15 +58,15 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 (observer, state) -> assertThat(state).isEqualTo(thirdStepResult)
         );
 
-        var firstStep = WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
+        var firstStep = Step.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
                 .thatAccepts(state -> new TestStateProjection(state.name()))
                 .reducesState(TestState::setName)
                 .build();
-        var secondStep = WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
+        var secondStep = Step.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
                 .thatAccepts(noPayload())
                 .reducesState(TestState::setAge)
                 .build();
-        var thirdStep = WorkflowStep.<TestState, TestState, TestState>forTask(thirdTask)
+        var thirdStep = Step.<TestState, TestState, TestState>forTask(thirdTask)
                 .thatAccepts(workflowState())
                 .reducesState((state, value) -> {
                     state.setName(value.name());

@@ -43,15 +43,15 @@ public class GraphWorkflowExample {
         
         TestState initialState = new TestState("Amber", 34);
         
-        var firstStep = WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of("Jane"))
+        var firstStep = Step.<TestState, TestStateProjection, String>forTask(payload -> Result.of("Jane"))
                 .thatAccepts(state -> new TestStateProjection(state.name()))
                 .reducesState(TestState::setName)
                 .build();
-        var secondStep = WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(5))
+        var secondStep = Step.<TestState, Void, Integer>forTask(unused -> Result.of(5))
                 .thatAccepts(noPayload())
                 .reducesState(TestState::setAge)
                 .build();
-        var thirdStep = WorkflowStep.<TestState, TestState, TestState>forTask(payload -> new TestState("Agnis", 16))
+        var thirdStep = Step.<TestState, TestState, TestState>forTask(payload -> new TestState("Agnis", 16))
                 .thatAccepts(workflowState())
                 .reducesState((state, value) -> {
                     state.setName(value.name());
