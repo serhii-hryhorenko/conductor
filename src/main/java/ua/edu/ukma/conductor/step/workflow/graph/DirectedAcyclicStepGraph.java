@@ -1,7 +1,7 @@
-package ua.edu.ukma.conductor.workflow.graph;
+package ua.edu.ukma.conductor.step.workflow.graph;
 
-import ua.edu.ukma.conductor.workflow.Step;
-import ua.edu.ukma.conductor.workflow.WorkflowState;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
 
 import java.util.*;
 

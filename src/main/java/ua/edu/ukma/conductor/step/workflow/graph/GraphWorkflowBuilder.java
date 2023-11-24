@@ -1,10 +1,10 @@
-package ua.edu.ukma.conductor.workflow.graph;
+package ua.edu.ukma.conductor.step.workflow.graph;
 
-import ua.edu.ukma.conductor.workflow.Step;
-import ua.edu.ukma.conductor.workflow.Workflow;
-import ua.edu.ukma.conductor.workflow.WorkflowBuilder;
-import ua.edu.ukma.conductor.workflow.WorkflowState;
-import ua.edu.ukma.conductor.workflow.linear.LinearWorkflow;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
+import ua.edu.ukma.conductor.step.workflow.linear.LinearWorkflow;
 
 import java.util.Arrays;
 import java.util.function.BiConsumer;
@@ -27,7 +27,7 @@ public class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBu
 
     @Override
     public GraphWorkflowBuilder<S> addStep(Step<S> step) {
-        return addStep(step, append());
+        return addStep(step, thatDependsOnLastStep());
     }
 
     @SafeVarargs
@@ -35,7 +35,7 @@ public class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBu
         return (builder, to) -> Arrays.stream(steps).sequential().forEach(step -> builder.graph.addEdge(step, to));
     }
 
-    public static <S extends WorkflowState<S>> BiConsumer<GraphWorkflowBuilder<S>, Step<S>> append() {
+    public static <S extends WorkflowState<S>> BiConsumer<GraphWorkflowBuilder<S>, Step<S>> thatDependsOnLastStep() {
         return (builder, to) -> builder.graph.addEdge(builder.lastAddedStep, to);
     }
 

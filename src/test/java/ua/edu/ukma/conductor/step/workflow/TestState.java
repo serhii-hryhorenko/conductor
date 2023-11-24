@@ -1,4 +1,6 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.step.workflow;
+
+import ua.edu.ukma.conductor.state.WorkflowState;
 
 public class TestState extends WorkflowState<TestState> {
     private String name;
@@ -10,7 +12,7 @@ public class TestState extends WorkflowState<TestState> {
     }
 
     @Override
-    protected TestState copy() {
+    public TestState copy() {
         return new TestState(name, age);
     }
 

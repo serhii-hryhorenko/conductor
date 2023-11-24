@@ -1,8 +1,8 @@
 package ua.edu.ukma.conductor.observer;
 
-import ua.edu.ukma.conductor.workflow.Workflow;
-import ua.edu.ukma.conductor.workflow.WorkflowObserver;
-import ua.edu.ukma.conductor.workflow.WorkflowState;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.step.workflow.WorkflowObserver;
 
 import java.util.Arrays;
 import java.util.Iterator;

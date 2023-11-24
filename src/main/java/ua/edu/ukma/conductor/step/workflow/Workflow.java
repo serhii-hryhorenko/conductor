@@ -1,6 +1,8 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.step.workflow;
 
 
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
 import ua.edu.ukma.conductor.task.Result;
 
 import java.util.List;

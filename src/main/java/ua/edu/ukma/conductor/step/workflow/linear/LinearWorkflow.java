@@ -1,9 +1,9 @@
-package ua.edu.ukma.conductor.workflow.linear;
+package ua.edu.ukma.conductor.step.workflow.linear;
 
-import ua.edu.ukma.conductor.workflow.Step;
-import ua.edu.ukma.conductor.workflow.Workflow;
-import ua.edu.ukma.conductor.workflow.WorkflowObserver;
-import ua.edu.ukma.conductor.workflow.WorkflowState;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.step.workflow.WorkflowObserver;
 
 import java.util.List;
 import java.util.ListIterator;

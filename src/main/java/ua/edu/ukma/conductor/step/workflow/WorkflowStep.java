@@ -1,7 +1,7 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.step.workflow;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
 import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.task.Task;
 
@@ -65,7 +65,7 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
 
     private Optional<Consumer<S>> stateReducerFor(V value) {
         return Optional.ofNullable(stateReducer)
-            .map(reducer -> state -> reducer.accept(state, value));
+                .map(reducer -> state -> reducer.accept(state, value));
     }
 
     @Override

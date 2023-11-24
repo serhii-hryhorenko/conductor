@@ -1,7 +1,11 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor;
 
-import ua.edu.ukma.conductor.workflow.graph.GraphWorkflowBuilder;
-import ua.edu.ukma.conductor.workflow.linear.LinearWorkflowBuilder;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.StepOrBuilder;
+import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
+import ua.edu.ukma.conductor.step.workflow.graph.GraphWorkflowBuilder;
+import ua.edu.ukma.conductor.step.workflow.linear.LinearWorkflowBuilder;
 
 import java.util.Arrays;
 
@@ -13,7 +17,7 @@ public final class Workflows {
     public static <S extends WorkflowState<S>>
     WorkflowBuilder<LinearWorkflowBuilder<S>, S> linearWorkflow(StepOrBuilder<S>... steps) {
         LinearWorkflowBuilder<S> builder = new LinearWorkflowBuilder<>();
-        Arrays.stream(steps).sequential().forEach(stepOrBuilder -> builder.addStep(stepOrBuilder.step()));
+        Arrays.stream(steps).sequential().forEach(builder::addStep);
 
         return builder;
     }

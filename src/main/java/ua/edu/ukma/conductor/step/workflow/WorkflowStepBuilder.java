@@ -1,5 +1,8 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.step.workflow;
 
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.StepOrBuilder;
 import ua.edu.ukma.conductor.task.Task;
 
 import java.util.Objects;
@@ -44,7 +47,7 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends StepO
     }
 
     @Override
-    protected Step<S> step() {
+    protected Step<S> toStep() {
         return build();
     }
 }

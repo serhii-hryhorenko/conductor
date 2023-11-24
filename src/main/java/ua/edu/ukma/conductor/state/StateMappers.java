@@ -1,4 +1,4 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.state;
 
 import java.util.function.Function;
 

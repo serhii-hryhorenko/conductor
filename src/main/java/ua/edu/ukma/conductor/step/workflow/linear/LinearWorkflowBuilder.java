@@ -1,8 +1,8 @@
-package ua.edu.ukma.conductor.workflow.linear;
+package ua.edu.ukma.conductor.step.workflow.linear;
 
-import ua.edu.ukma.conductor.workflow.Step;
-import ua.edu.ukma.conductor.workflow.WorkflowBuilder;
-import ua.edu.ukma.conductor.workflow.WorkflowState;
+import ua.edu.ukma.conductor.state.WorkflowState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

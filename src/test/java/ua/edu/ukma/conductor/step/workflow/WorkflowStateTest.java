@@ -1,4 +1,4 @@
-package ua.edu.ukma.conductor.workflow;
+package ua.edu.ukma.conductor.step.workflow;
 
 import org.junit.jupiter.api.Test;
 

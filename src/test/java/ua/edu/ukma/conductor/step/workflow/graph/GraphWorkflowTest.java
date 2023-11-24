@@ -1,13 +1,17 @@
-package ua.edu.ukma.conductor.workflow.graph;
+package ua.edu.ukma.conductor.step.workflow.graph;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
+import ua.edu.ukma.conductor.Workflows;
 import ua.edu.ukma.conductor.observer.TestObserver;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.step.workflow.WorkflowStep;
 import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
-import ua.edu.ukma.conductor.workflow.*;
+import ua.edu.ukma.conductor.step.workflow.TestState;
+import ua.edu.ukma.conductor.step.workflow.TestStateProjection;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,9 +23,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static ua.edu.ukma.conductor.observer.TestObserver.assertions;
-import static ua.edu.ukma.conductor.workflow.StateMappers.noPayload;
-import static ua.edu.ukma.conductor.workflow.StateMappers.workflowState;
-import static ua.edu.ukma.conductor.workflow.graph.GraphWorkflowBuilder.thatDependsOn;
+import static ua.edu.ukma.conductor.state.StateMappers.noPayload;
+import static ua.edu.ukma.conductor.state.StateMappers.workflowState;
+import static ua.edu.ukma.conductor.step.workflow.graph.GraphWorkflowBuilder.thatDependsOn;
 
 class GraphWorkflowTest extends DefaultTestConfiguration {
     private static final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -43,7 +47,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
         TestState thirdStepResult = new TestState("Agnis", 16);
 
         AsyncTask<TestState, TestState> thirdTask = AsyncTask.fromFuture(
-            () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
+                () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
         );
 
         TestObserver<TestState> testStateTestObserver = assertions(

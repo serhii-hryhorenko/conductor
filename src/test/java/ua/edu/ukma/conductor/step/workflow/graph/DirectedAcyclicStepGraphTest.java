@@ -1,10 +1,10 @@
-package ua.edu.ukma.conductor.workflow.graph;
+package ua.edu.ukma.conductor.step.workflow.graph;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
-import ua.edu.ukma.conductor.workflow.Step;
-import ua.edu.ukma.conductor.workflow.TestState;
+import ua.edu.ukma.conductor.step.Step;
+import ua.edu.ukma.conductor.step.workflow.TestState;
 
 import java.util.List;
 
