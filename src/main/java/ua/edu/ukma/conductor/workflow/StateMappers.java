@@ -6,7 +6,7 @@ public class StateMappers {
     private StateMappers() {
     }
 
-    public static <S extends WorkflowState<S>> Function<S, S> wholeState() {
+    public static <S extends WorkflowState<S>> Function<S, S> workflowState() {
         return WorkflowState::copy;
     }
 

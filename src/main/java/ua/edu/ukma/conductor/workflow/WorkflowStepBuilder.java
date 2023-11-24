@@ -13,7 +13,6 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends StepO
     private BiConsumer<S, V> stateReducer;
     private Consumer<V> successHandler;
     private Consumer<Throwable> errorHandler;
-    private Consumer<Void> fallbackHandler;
 
     WorkflowStepBuilder(Task<P, V> task) {
         this.task = task;
@@ -24,29 +23,24 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends StepO
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> reducingState(BiConsumer<S, V> stateReducer) {
+    public WorkflowStepBuilder<S, P, V> reducesState(BiConsumer<S, V> stateReducer) {
         this.stateReducer = stateReducer;
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> withSuccessHandler(Consumer<V> successHandler) {
+    public WorkflowStepBuilder<S, P, V> onSuccess(Consumer<V> successHandler) {
         this.successHandler = successHandler;
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> withErrorHandler(Consumer<Throwable> errorHandler) {
-        this.errorHandler = errorHandler;
-        return this;
-    }
-
-    public WorkflowStepBuilder<S, P, V> withFallbackHandler(Consumer<Void> fallbackHandler) {
-        this.fallbackHandler = fallbackHandler;
+    public WorkflowStepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
+        this.errorHandler = failHandler;
         return this;
     }
 
     public WorkflowStep<S, P, V> build() {
         Objects.requireNonNull(stateMapper);
-        return new WorkflowStep<>(task, stateMapper, stateReducer, successHandler, errorHandler, fallbackHandler);
+        return new WorkflowStep<>(task, stateMapper, stateReducer, successHandler, errorHandler);
     }
 
     @Override

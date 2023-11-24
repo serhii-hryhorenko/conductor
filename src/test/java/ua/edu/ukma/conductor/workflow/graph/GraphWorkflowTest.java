@@ -20,7 +20,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static ua.edu.ukma.conductor.observer.TestObserver.assertions;
 import static ua.edu.ukma.conductor.workflow.StateMappers.noPayload;
-import static ua.edu.ukma.conductor.workflow.StateMappers.wholeState;
+import static ua.edu.ukma.conductor.workflow.StateMappers.workflowState;
 import static ua.edu.ukma.conductor.workflow.graph.GraphWorkflowBuilder.thatDependsOn;
 
 class GraphWorkflowTest extends DefaultTestConfiguration {
@@ -43,7 +43,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
         TestState thirdStepResult = new TestState("Agnis", 16);
 
         AsyncTask<TestState, TestState> thirdTask = AsyncTask.fromFuture(
-                () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
+            () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
         );
 
         TestObserver<TestState> testStateTestObserver = assertions(
@@ -55,19 +55,19 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
 
         var firstStep = WorkflowStep.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                .reducingState(TestState::setName)
+                .reducesState(TestState::setName)
                 .build();
         var secondStep = WorkflowStep.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
                 .thatAccepts(noPayload())
-                .reducingState(TestState::setAge)
+                .reducesState(TestState::setAge)
                 .build();
         var thirdStep = WorkflowStep.<TestState, TestState, TestState>forTask(thirdTask)
-                .thatAccepts(wholeState())
-                .reducingState((state, value) -> {
+                .thatAccepts(workflowState())
+                .reducesState((state, value) -> {
                     state.setName(value.name());
                     state.setAge(value.age());
                 })
-                .withSuccessHandler(successHandler)
+                .onSuccess(successHandler)
                 .build();
 
         Workflow<TestState> workflow = Workflows.builder(firstStep)

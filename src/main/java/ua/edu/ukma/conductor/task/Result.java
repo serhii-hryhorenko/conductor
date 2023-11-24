@@ -1,6 +1,7 @@
 package ua.edu.ukma.conductor.task;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class Result<T> {
     private final T value;
@@ -17,6 +18,10 @@ public final class Result<T> {
 
     public static <T> Result<T> error(Throwable error) {
         return new Result<>(null, error);
+    }
+
+    public Optional<T> toOptional() {
+        return Optional.ofNullable(value);
     }
 
     public T value() {

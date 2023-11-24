@@ -8,11 +8,6 @@ public abstract class StepBuilder<B extends WorkflowBuilder<B, S>,
 
     public abstract W build();
 
-    public B addStep(StepBuilder<B, ? extends Step<S>, S> builder) {
-        addStep(builder.build());
-        return (B) this;
-    }
-
     @Override
     protected Step<S> step() {
         return build();

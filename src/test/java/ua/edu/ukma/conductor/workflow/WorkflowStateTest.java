@@ -24,7 +24,7 @@ class WorkflowStateTest {
         TestState initialState = new TestState("test", 42);
         Consumer<TestState> stateReducer = state -> state.setAge(19);
 
-        TestState mutatedState = initialState.mutate(stateReducer);
+        TestState mutatedState = initialState.reduce(stateReducer);
 
         assertNotSame(initialState, mutatedState);
         assertEquals(19, mutatedState.age());

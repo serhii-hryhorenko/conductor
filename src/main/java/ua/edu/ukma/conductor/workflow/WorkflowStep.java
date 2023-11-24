@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
-    private final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
     private final UUID uuid = UUID.randomUUID();
 
     private final Task<P, V> task;
@@ -22,20 +21,17 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
     private final BiConsumer<S, V> stateReducer;
     private final Consumer<V> successHandler;
     private final Consumer<Throwable> errorHandler;
-    private final Consumer<Void> fallbackHandler;
 
     protected WorkflowStep(Task<P, V> task,
                            Function<S, P> stateProjector,
                            BiConsumer<S, V> stateReducer,
                            Consumer<V> successHandler,
-                           Consumer<Throwable> errorHandler,
-                           Consumer<Void> fallbackHandler) {
+                           Consumer<Throwable> errorHandler) {
         this.task = task;
         this.stateProjector = stateProjector;
         this.stateReducer = stateReducer;
         this.successHandler = successHandler;
         this.errorHandler = errorHandler;
-        this.fallbackHandler = fallbackHandler;
     }
 
     public static <S extends WorkflowState<S>, P, V>
@@ -44,40 +40,21 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
     }
 
     public Result<S> execute(S state) {
-        logger.info("Is being executed.");
-        logger.debug("Accepted state payload: {}", state);
-
         P taskPayload = stateProjector.apply(state);
-        Result<V> executionResult = task.submit(taskPayload);
+        Result<V> taskResult = task.submit(taskPayload);
 
-        onCompletion(executionResult);
-
-        if (executionResult.isOk()) {
-            Result<S> reducedState = stateReducerFor(executionResult.value())
-                    .map(state::mutate)
-                    .map(Result::of)
-                    .orElseGet(() -> Result.of(state));
-
-            logger.info("Completed successfully, reduced state: {}", state);
-
-            return reducedState;
+        if (taskResult.hasError()) {
+            consumeIfNotNull(errorHandler, taskResult.error());
+            return Result.error(taskResult.error());
         }
 
-        logger.error("Execution failed with error: {}", executionResult.error());
-        return Result.error(executionResult.error());
-    }
+        consumeIfNotNull(successHandler, taskResult.value());
 
-    void onFallback() {
-        consumeIfNotNull(fallbackHandler, null);
-    }
-
-    private void onCompletion(Result<V> result) {
-        if (result.hasError()) {
-            consumeIfNotNull(errorHandler, result.error());
-            return;
-        }
-
-        consumeIfNotNull(successHandler, result.value());
+        return taskResult.toOptional()
+                .flatMap(this::stateReducerFor)
+                .map(state::reduce)
+                .map(Result::of)
+                .orElse(Result.of(state));
     }
 
     private static <T> void consumeIfNotNull(Consumer<T> consumer, T value) {
@@ -88,7 +65,7 @@ public class WorkflowStep<S extends WorkflowState<S>, P, V> extends Step<S> {
 
     private Optional<Consumer<S>> stateReducerFor(V value) {
         return Optional.ofNullable(stateReducer)
-                .map(reducer -> state -> reducer.accept(state, value));
+            .map(reducer -> state -> reducer.accept(state, value));
     }
 
     @Override

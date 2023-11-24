@@ -16,7 +16,7 @@ public abstract class Workflow<S extends WorkflowState<S>> extends Step<S> {
     @Override
     public final Result<S> execute(S initialState) {
         S currentState = initialState;
-        observeState(initialState);
+        notifyObservers(initialState);
 
         for (Optional<Step<S>> step = nextStep(); step.isPresent(); step = nextStep()) {
             Step<S> currentStep = step.get();
@@ -26,7 +26,7 @@ public abstract class Workflow<S extends WorkflowState<S>> extends Step<S> {
                 return Result.error(reducedState.error());
             }
 
-            observeState(reducedState.value());
+            notifyObservers(reducedState.value());
             currentState = reducedState.value();
         }
 
@@ -35,7 +35,7 @@ public abstract class Workflow<S extends WorkflowState<S>> extends Step<S> {
 
     protected abstract Optional<Step<S>> nextStep();
 
-    private void observeState(S state) {
+    private void notifyObservers(S state) {
         observers.forEach(observer -> observer.observe(state.copy()));
     }
 }
