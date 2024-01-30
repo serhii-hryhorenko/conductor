@@ -30,7 +30,7 @@ import static ua.edu.ukma.conductor.step.workflow.graph.GraphWorkflowBuilder.dep
 
 class GraphWorkflowTest extends DefaultTestConfiguration {
     private static final ScheduledExecutorService scheduledExecutorService =
-        Executors.newSingleThreadScheduledExecutor();
+            Executors.newSingleThreadScheduledExecutor();
 
     @Mock
     private Consumer<TestState> successHandler;
@@ -132,6 +132,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.builder(firstStep)
+                .named("Test workflow")
                 .addStep(thirdStep, dependsOn(firstStep, secondStep))
                 .addStep(secondStep, dependsOn(firstStep))
                 .attachObservers(testStateTestObserver)
@@ -167,18 +168,18 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .build();
 
         Workflow<TestState> workflow = Workflows.builder(firstStep)
-            .addStep(secondStep, dependsOn(firstStep))
-            .addStep(thirdStep, dependsOn(secondStep))
-            .build();
+                .addStep(secondStep, dependsOn(firstStep))
+                .addStep(thirdStep, dependsOn(secondStep))
+                .build();
 
         Result<TestState> result = workflow.execute(initialState);
         assertWithMessage("Workflow should fail")
-            .that(result.hasError())
-            .isTrue();
+                .that(result.hasError())
+                .isTrue();
 
         assertWithMessage("Workflow should fail with error from second step")
-            .that(result.error())
-            .isEqualTo(error);
+                .that(result.error())
+                .isEqualTo(error);
     }
 
     @Test
@@ -208,17 +209,17 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .build();
 
         Workflow<TestState> workflow = Workflows.builder(firstStep)
-            .addStep(secondStep, dependsOn(firstStep))
-            .addStep(thirdStep, dependsOn(secondStep))
-            .build();
+                .addStep(secondStep, dependsOn(firstStep))
+                .addStep(thirdStep, dependsOn(secondStep))
+                .build();
 
         Result<TestState> result = workflow.execute(initialState);
         assertWithMessage("Workflow should fail")
-            .that(result.hasError())
-            .isTrue();
+                .that(result.hasError())
+                .isTrue();
 
         assertWithMessage("Workflow should fail with error from second step")
-            .that(result.error())
-            .isEqualTo(error);
+                .that(result.error())
+                .isEqualTo(error);
     }
 }

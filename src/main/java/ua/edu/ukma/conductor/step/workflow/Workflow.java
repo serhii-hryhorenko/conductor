@@ -10,6 +10,11 @@ import java.util.List;
 public abstract class Workflow<S extends WorkflowState<S>> extends WorkflowStep<S> {
     private final List<WorkflowObserver<S>> observers;
 
+    protected Workflow(String name, List<WorkflowObserver<S>> observers) {
+        super(name);
+        this.observers = observers;
+    }
+
     protected Workflow(List<WorkflowObserver<S>> observers) {
         this.observers = observers;
     }

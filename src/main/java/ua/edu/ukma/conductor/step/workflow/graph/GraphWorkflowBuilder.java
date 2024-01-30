@@ -4,7 +4,8 @@ import ua.edu.ukma.conductor.state.WorkflowState;
 import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.step.workflow.Workflow;
 import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
-import ua.edu.ukma.conductor.step.workflow.linear.LinearWorkflow;
+import ua.edu.ukma.conductor.step.workflow.WorkflowObserver;
+import ua.edu.ukma.conductor.step.workflow.linear.LinearWorkflowBuilder;
 
 import java.util.Arrays;
 import java.util.function.BiConsumer;
@@ -50,7 +51,12 @@ public class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBu
 
     public Workflow<S> build() {
         if (synchronous) {
-            return new LinearWorkflow<>(graph.topologicalSort(), observers());
+            LinearWorkflowBuilder<S> builder = new LinearWorkflowBuilder<>();
+
+            graph.topologicalSort().forEach(builder::addStep);
+            builder.attachObservers(observers().toArray(WorkflowObserver[]::new));
+
+            return builder.build();
         }
 
         return new GraphWorkflow<>(graph, observers());

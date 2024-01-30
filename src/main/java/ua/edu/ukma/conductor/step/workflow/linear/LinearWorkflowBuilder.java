@@ -19,6 +19,6 @@ public class LinearWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowB
 
     @Override
     public LinearWorkflow<S> build() {
-        return new LinearWorkflow<>(steps, observers());
+        return new LinearWorkflow<>(name(), steps, observers());
     }
 }

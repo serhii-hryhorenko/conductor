@@ -25,7 +25,13 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
 
     private final ReentrantLock lock = new ReentrantLock();
     private S state;
+
     private boolean failed = false;
+
+    GraphWorkflow(String name, DirectedAcyclicStepGraph<S> graph, List<WorkflowObserver<S>> workflowObservers) {
+        super(name, workflowObservers);
+        this.graph = graph;
+    }
 
     GraphWorkflow(DirectedAcyclicStepGraph<S> graph, List<WorkflowObserver<S>> workflowObservers) {
         super(workflowObservers);
@@ -41,7 +47,7 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
     }
 
     /**
-     * Executes the graph recursively.
+     * Executes the graph steps recursively.
      */
     private Result<S> executeGraph(S state, WorkflowStep<S> currentStep, Set<WorkflowStep<S>> visited) {
         // If the step has already been visited, we can skip it.
@@ -66,11 +72,9 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
         setState(result.value());
         notifyObservers(result.value().copy());
 
-        CompletableFuture<Result<S>>[] futureResults = adjacentSteps(currentStep).stream()
-                .map(step -> supplyAsync(() -> executeGraph(state(), step, visited)))
-                .toArray(CompletableFuture[]::new);
-
+        CompletableFuture<Result<S>>[] futureResults = executeSubtasks(currentStep, visited);
         CompletableFuture.allOf(futureResults).join();
+
         for (CompletableFuture<Result<S>> futureResult : futureResults) {
             try {
                 Result<S> stepResult = futureResult.get();
@@ -86,8 +90,10 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
         return Result.ok(state());
     }
 
-    private List<WorkflowStep<S>> adjacentSteps(WorkflowStep<S> step) {
-        return graph.adjacentVertices(step);
+    private CompletableFuture<Result<S>>[] executeSubtasks(WorkflowStep<S> currentStep, Set<WorkflowStep<S>> visited) {
+        return graph.adjacentVertices(currentStep).stream()
+                .map(step -> supplyAsync(() -> executeGraph(state(), step, visited)))
+                .toArray(CompletableFuture[]::new);
     }
 
     private void fail() {

@@ -11,6 +11,8 @@ public abstract class WorkflowBuilder<B extends WorkflowBuilder<B, S>,
         S extends WorkflowState<S>> extends StepBuilder<B, Workflow<S>, S> {
     private final List<WorkflowObserver<S>> observers = new ArrayList<>();
 
+    private String name;
+
     @SafeVarargs
     @SuppressWarnings("unchecked")
     public final B attachObservers(WorkflowObserver<S>... observers) {
@@ -18,7 +20,16 @@ public abstract class WorkflowBuilder<B extends WorkflowBuilder<B, S>,
         return (B) this;
     }
 
+    public B named(String name) {
+        this.name = name;
+        return (B) this;
+    }
+
     protected List<WorkflowObserver<S>> observers() {
         return observers;
+    }
+
+    protected String name() {
+        return name;
     }
 }

@@ -13,8 +13,8 @@ import java.util.Optional;
 public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
     private final Iterator<WorkflowStep<S>> stepsIterator;
 
-    public LinearWorkflow(List<WorkflowStep<S>> steps, List<WorkflowObserver<S>> observers) {
-        super(observers);
+    LinearWorkflow(String name, List<WorkflowStep<S>> steps, List<WorkflowObserver<S>> observers) {
+        super(name, observers);
         this.stepsIterator = steps.iterator();
     }
 
