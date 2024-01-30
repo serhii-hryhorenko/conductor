@@ -19,6 +19,14 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         adjacencyList.put(step, new ArrayList<>());
     }
 
+    List<WorkflowStep<S>> adjacentVertices(WorkflowStep<S> vertex) {
+        return adjacencyList.getOrDefault(vertex, List.of());
+    }
+
+    WorkflowStep<S> startVertex() {
+        return startVertex;
+    }
+
     void addEdge(WorkflowStep<S> from, WorkflowStep<S> to) {
         if (!adjacencyList.containsKey(from)) {
             addVertex(from);

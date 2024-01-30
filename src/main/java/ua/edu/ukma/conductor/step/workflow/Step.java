@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conductor.step.WorkflowStep<S> {
-    private final UUID uuid = UUID.randomUUID();
-
+    private final UUID id = UUID.randomUUID();
     private final Task<P, V> task;
+    private final String name;
     private final Function<S, P> stateProjector;
 
     private final BiConsumer<S, V> stateReducer;
@@ -22,11 +22,13 @@ public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conducto
     private final Consumer<Throwable> errorHandler;
 
     protected Step(Task<P, V> task,
+                   String name,
                    Function<S, P> stateProjector,
                    BiConsumer<S, V> stateReducer,
                    Consumer<V> successHandler,
                    Consumer<Throwable> errorHandler) {
         this.task = task;
+        this.name = name;
         this.stateProjector = stateProjector;
         this.stateReducer = stateReducer;
         this.successHandler = successHandler;
@@ -34,8 +36,8 @@ public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conducto
     }
 
     public static <S extends WorkflowState<S>, P, V>
-    StepBuilder<S, P, V> forTask(Task<P, V> task) {
-        return new StepBuilder<>(task);
+    WorkflowStepBuilder<S, P, V> forTask(Task<P, V> task) {
+        return new WorkflowStepBuilder<>(task);
     }
 
     public Result<S> execute(S state) {
@@ -52,8 +54,8 @@ public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conducto
         return taskResult.toOptional()
                 .flatMap(this::stateReducerFor)
                 .map(state::reduce)
-                .map(Result::of)
-                .orElse(Result.of(state));
+                .map(Result::ok)
+                .orElse(Result.ok(state));
     }
 
     private static <T> void consumeIfNotNull(Consumer<T> consumer, T value) {
@@ -69,11 +71,19 @@ public class Step<S extends WorkflowState<S>, P, V> extends ua.edu.ukma.conducto
 
     @Override
     public int hashCode() {
-        return uuid.hashCode();
+        return id.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        return obj instanceof Step && ((Step<?, ?, ?>) obj).id.equals(id);
+    }
+
+    public String name() {
+        return Optional.ofNullable(name).orElse("Unnamed");
+    }
+
+    public UUID id() {
+        return id;
     }
 }

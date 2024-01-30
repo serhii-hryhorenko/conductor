@@ -10,40 +10,46 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class StepBuilder<S extends WorkflowState<S>, P, V> extends WorkflowStepOrBuilder<S> {
+public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends WorkflowStepOrBuilder<S> {
     private final Task<P, V> task;
+    private String name;
     private Function<S, P> stateMapper;
     private BiConsumer<S, V> stateReducer;
     private Consumer<V> successHandler;
     private Consumer<Throwable> errorHandler;
 
-    StepBuilder(Task<P, V> task) {
+    WorkflowStepBuilder(Task<P, V> task) {
         this.task = task;
     }
 
-    public StepBuilder<S, P, V> thatAccepts(Function<S, P> stateMapper) {
+    public WorkflowStepBuilder<S, P, V> named(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public WorkflowStepBuilder<S, P, V> thatAccepts(Function<S, P> stateMapper) {
         this.stateMapper = stateMapper;
         return this;
     }
 
-    public StepBuilder<S, P, V> reducesState(BiConsumer<S, V> stateReducer) {
+    public WorkflowStepBuilder<S, P, V> reducesState(BiConsumer<S, V> stateReducer) {
         this.stateReducer = stateReducer;
         return this;
     }
 
-    public StepBuilder<S, P, V> onSuccess(Consumer<V> successHandler) {
+    public WorkflowStepBuilder<S, P, V> onSuccess(Consumer<V> successHandler) {
         this.successHandler = successHandler;
         return this;
     }
 
-    public StepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
+    public WorkflowStepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
         this.errorHandler = failHandler;
         return this;
     }
 
     public Step<S, P, V> build() {
         Objects.requireNonNull(stateMapper);
-        return new Step<>(task, stateMapper, stateReducer, successHandler, errorHandler);
+        return new Step<>(task, name, stateMapper, stateReducer, successHandler, errorHandler);
     }
 
     @Override

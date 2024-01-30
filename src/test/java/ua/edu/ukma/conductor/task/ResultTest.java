@@ -9,7 +9,7 @@ class ResultTest {
     void testSuccessResultWithValue() {
         Integer expectedValue = 42;
 
-        Result<Integer> result = Result.of(expectedValue);
+        Result<Integer> result = Result.ok(expectedValue);
 
         assertTrue(result.isOk());
         assertFalse(result.hasError());
@@ -29,6 +29,6 @@ class ResultTest {
 
     @Test
     void testErrorResultNullError() {
-        assertThrows(NullPointerException.class, () -> Result.of(5).error());
+        assertThrows(NullPointerException.class, () -> Result.ok(5).error());
     }
 }

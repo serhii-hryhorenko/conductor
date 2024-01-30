@@ -8,7 +8,6 @@ import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.task.Result;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -50,12 +49,10 @@ class WorkflowTest extends DefaultTestConfiguration {
     }
 
     private void setupStep() {
-        when(step.execute(initialState))
-                .thenReturn(Result.of(initialState));
+        when(step.execute(initialState)).thenReturn(Result.ok(initialState));
     }
 
     private static class TestWorkflow extends Workflow<TestState> {
-        private boolean executedStep;
         private final WorkflowStep<TestState> testStep;
 
         public TestWorkflow(WorkflowStep<TestState> testStep, List<WorkflowObserver<TestState>> observers) {
@@ -64,13 +61,13 @@ class WorkflowTest extends DefaultTestConfiguration {
         }
 
         @Override
-        protected Optional<WorkflowStep<TestState>> nextStep() {
-            if (executedStep) {
-                return Optional.empty();
-            }
+        public Result<TestState> execute(TestState initialState) {
+            notifyObservers(initialState);
 
-            executedStep = true;
-            return Optional.of(testStep);
+            Result<TestState> result = testStep.execute(initialState);
+            notifyObservers(result.value());
+
+            return result;
         }
     }
 }

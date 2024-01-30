@@ -6,12 +6,12 @@ import org.mockito.Mock;
 import ua.edu.ukma.conductor.DefaultTestConfiguration;
 import ua.edu.ukma.conductor.Workflows;
 import ua.edu.ukma.conductor.observer.TestObserver;
-import ua.edu.ukma.conductor.step.workflow.Workflow;
 import ua.edu.ukma.conductor.step.workflow.Step;
-import ua.edu.ukma.conductor.task.AsyncTask;
-import ua.edu.ukma.conductor.task.Result;
 import ua.edu.ukma.conductor.step.workflow.TestState;
 import ua.edu.ukma.conductor.step.workflow.TestStateProjection;
+import ua.edu.ukma.conductor.step.workflow.Workflow;
+import ua.edu.ukma.conductor.task.AsyncTask;
+import ua.edu.ukma.conductor.task.Result;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -57,11 +57,11 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         );
 
         Workflow<TestState> workflow = Workflows.linearWorkflow(
-                        Step.<TestState, TestStateProjection, String>forTask(payload -> Result.of(firstStepResult))
+                        Step.<TestState, TestStateProjection, String>forTask(payload -> Result.ok(firstStepResult))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
                                 .reducesState(TestState::setName),
 
-                        Step.<TestState, Void, Integer>forTask(unused -> Result.of(secondStepResult))
+                        Step.<TestState, Void, Integer>forTask(unused -> Result.ok(secondStepResult))
                                 .thatAccepts(noPayload())
                                 .reducesState(TestState::setAge),
 

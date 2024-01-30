@@ -12,7 +12,7 @@ public final class Result<T> {
         this.error = error;
     }
 
-    public static <T> Result<T> of(T value) {
+    public static <T> Result<T> ok(T value) {
         return new Result<>(value, null);
     }
 

@@ -13,6 +13,8 @@ public class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBu
     private final DirectedAcyclicStepGraph<S> graph;
     private WorkflowStep<S> lastAddedStep;
 
+    private boolean synchronous = false;
+
     public GraphWorkflowBuilder(WorkflowStep<S> initialStep) {
         this.graph = new DirectedAcyclicStepGraph<>(initialStep);
     }
@@ -25,23 +27,32 @@ public class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBu
         return this;
     }
 
+    public GraphWorkflowBuilder<S> synchronous() {
+        synchronous = true;
+        return this;
+    }
+
     @Override
     public GraphWorkflowBuilder<S> addStep(WorkflowStep<S> step) {
-        return addStep(step, thatDependsOnLastStep());
+        return addStep(step, dependsOnLastStep());
     }
 
     @SafeVarargs
     public static <S extends WorkflowState<S>>
-    BiConsumer<GraphWorkflowBuilder<S>, WorkflowStep<S>> thatDependsOn(WorkflowStep<S>... steps) {
+    BiConsumer<GraphWorkflowBuilder<S>, WorkflowStep<S>> dependsOn(WorkflowStep<S>... steps) {
         return (builder, to) -> Arrays.stream(steps).sequential().forEach(step -> builder.graph.addEdge(step, to));
     }
 
     public static <S extends WorkflowState<S>>
-    BiConsumer<GraphWorkflowBuilder<S>, WorkflowStep<S>> thatDependsOnLastStep() {
+    BiConsumer<GraphWorkflowBuilder<S>, WorkflowStep<S>> dependsOnLastStep() {
         return (builder, to) -> builder.graph.addEdge(builder.lastAddedStep, to);
     }
 
     public Workflow<S> build() {
-        return new LinearWorkflow<>(graph.topologicalSort(), observers());
+        if (synchronous) {
+            return new LinearWorkflow<>(graph.topologicalSort(), observers());
+        }
+
+        return new GraphWorkflow<>(graph, observers());
     }
 }

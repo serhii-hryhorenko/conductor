@@ -11,6 +11,7 @@ import ua.edu.ukma.conductor.task.Result;
  * @param <S> state type
  */
 public abstract class WorkflowStep<S extends WorkflowState<S>> extends WorkflowStepOrBuilder<S> {
+
     public abstract Result<S> execute(S initialState);
 
     @Override
