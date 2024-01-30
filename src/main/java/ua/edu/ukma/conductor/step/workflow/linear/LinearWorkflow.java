@@ -1,5 +1,7 @@
 package ua.edu.ukma.conductor.step.workflow.linear;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ua.edu.ukma.conductor.state.WorkflowState;
 import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.step.workflow.Workflow;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
+    private final Logger logger = LoggerFactory.getLogger(LinearWorkflow.class);
+
     private final Iterator<WorkflowStep<S>> stepsIterator;
 
     LinearWorkflow(String name, List<WorkflowStep<S>> steps, List<WorkflowObserver<S>> observers) {
@@ -20,6 +24,8 @@ public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
 
     @Override
     public Result<S> execute(S initialState) {
+        logger.info("[{}] – Starting workflow", name());
+
         S currentState = initialState;
         notifyObservers(initialState);
 
@@ -28,12 +34,19 @@ public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
             Result<S> reducedState = currentStep.execute(currentState);
 
             if (reducedState.hasError()) {
+                logger.error("[{}] – Workflow failed on step `{}` with error `{}`",
+                        name(), currentStep, reducedState.error());
                 return Result.error(reducedState.error());
             }
 
             notifyObservers(reducedState.value());
             currentState = reducedState.value();
+
+            logger.debug("[{}] – Step `{}` finished", name(), currentStep);
+            logger.debug("[{}] – Current state: {}", name(), currentState);
         }
+
+        logger.info("[{}] – Workflow finished", name());
 
         return Result.ok(currentState);
     }

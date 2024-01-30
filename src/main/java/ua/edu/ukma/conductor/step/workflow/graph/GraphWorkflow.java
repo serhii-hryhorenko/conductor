@@ -40,10 +40,15 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
 
     @Override
     public Result<S> execute(S initialState) {
+        logger.info("[{}] – Starting workflow", name());
         notifyObservers(initialState);
 
         Set<WorkflowStep<S>> visited = Collections.synchronizedSet(new HashSet<>());
-        return executeGraph(initialState, graph.startVertex(), visited);
+
+        Result<S> result = executeGraph(initialState, graph.startVertex(), visited);
+        logger.info("[{}] – Workflow finished", name());
+
+        return result;
     }
 
     /**
@@ -52,12 +57,13 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
     private Result<S> executeGraph(S state, WorkflowStep<S> currentStep, Set<WorkflowStep<S>> visited) {
         // If the step has already been visited, we can skip it.
         if (visited.contains(currentStep)) {
-            logger.debug("Skipping step `{}`, because it has already been visited", currentStep);
+            logger.debug("[{}] – Skipping step `{}`, because it has already been visited", name(), currentStep);
             return Result.ok(state);
         }
 
         // If the workflow has failed, we can skip the rest of the steps.
         if (failed) {
+            logger.debug("[{}] – Skipping step `{}`, because the workflow has failed", name(), currentStep);
             return Result.ok(state);
         }
 
@@ -65,12 +71,16 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
         var result = currentStep.execute(state);
 
         if (result.hasError()) {
+            logger.error("[{}] – Step `{}` failed with error: {}", name(), currentStep, result.error());
             fail();
             return result;
         }
 
         setState(result.value());
         notifyObservers(result.value().copy());
+
+        logger.debug("[{}] – Step `{}` finished successfully", name(), currentStep);
+        logger.debug("[{}] – Current state: {}", name(), state());
 
         CompletableFuture<Result<S>>[] futureResults = executeSubtasks(currentStep, visited);
         CompletableFuture.allOf(futureResults).join();
