@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
+public final class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
     private final Logger logger = LoggerFactory.getLogger(LinearWorkflow.class);
 
     private final Iterator<WorkflowStep<S>> stepsIterator;
@@ -57,5 +57,18 @@ public class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LinearWorkflow<?> that)) return false;
+
+        return stepsIterator.equals(that.stepsIterator);
+    }
+
+    @Override
+    public int hashCode() {
+        return stepsIterator.hashCode();
     }
 }

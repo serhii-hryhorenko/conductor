@@ -26,7 +26,7 @@ class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
     private DirectedAcyclicStepGraph<TestState> graph;
 
     void setupAcyclicGraph() {
-        graph = new DirectedAcyclicStepGraph<>(stepA);
+        graph = new DirectedAcyclicStepGraph<>();
 
         graph.addEdge(stepA, stepB);
         graph.addEdge(stepA, stepC);

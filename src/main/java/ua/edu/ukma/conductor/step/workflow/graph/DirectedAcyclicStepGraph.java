@@ -5,14 +5,11 @@ import ua.edu.ukma.conductor.step.WorkflowStep;
 
 import java.util.*;
 
-public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
+public final class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     private final Map<WorkflowStep<S>, List<WorkflowStep<S>>> adjacencyList;
-    private final WorkflowStep<S> startVertex;
 
-    DirectedAcyclicStepGraph(WorkflowStep<S> firstStep) {
+    DirectedAcyclicStepGraph() {
         this.adjacencyList = new HashMap<>();
-        this.startVertex = firstStep;
-        addVertex(firstStep);
     }
 
     private void addVertex(WorkflowStep<S> step) {
@@ -21,10 +18,6 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
 
     List<WorkflowStep<S>> adjacentVertices(WorkflowStep<S> vertex) {
         return adjacencyList.getOrDefault(vertex, List.of());
-    }
-
-    WorkflowStep<S> startVertex() {
-        return startVertex;
     }
 
     void addEdge(WorkflowStep<S> from, WorkflowStep<S> to) {
@@ -43,13 +36,23 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         }
     }
 
+    WorkflowStep<S> startVertex() {
+        return adjacencyList.keySet().stream()
+                .filter(step -> adjacencyList.values().stream().noneMatch(list -> list.contains(step)))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Graph has no start vertex."));
+    }
+
     List<WorkflowStep<S>> topologicalSort() {
         List<WorkflowStep<S>> sortedSteps = new ArrayList<>();
         Set<WorkflowStep<S>> visited = new HashSet<>();
 
+        WorkflowStep<S> startVertex = startVertex();
+
         topologicalSortHelper(startVertex, visited, sortedSteps);
 
         Collections.reverse(sortedSteps);
+
         return sortedSteps;
     }
 
@@ -70,7 +73,7 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     private boolean hasCycle() {
         HashSet<WorkflowStep<S>> visited = new HashSet<>();
 
-        return hasCycle(startVertex, visited);
+        return hasCycle(startVertex(), visited);
     }
 
     private boolean hasCycle(WorkflowStep<S> step,
@@ -87,5 +90,18 @@ public class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DirectedAcyclicStepGraph<?> that)) return false;
+
+        return adjacencyList.equals(that.adjacencyList);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * adjacencyList.hashCode();
     }
 }

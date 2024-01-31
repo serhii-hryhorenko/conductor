@@ -129,4 +129,20 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
             lock.unlock();
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GraphWorkflow<?> that)) return false;
+
+        if (failed != that.failed) return false;
+        return graph.equals(that.graph);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = graph.hashCode();
+        result = 31 * result + (failed ? 1 : 0);
+        return result;
+    }
 }

@@ -7,7 +7,7 @@ import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LinearWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBuilder<LinearWorkflowBuilder<S>, S> {
+public final class LinearWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBuilder<LinearWorkflowBuilder<S>, S> {
     private final List<WorkflowStep<S>> steps = new ArrayList<>();
 
     @Override

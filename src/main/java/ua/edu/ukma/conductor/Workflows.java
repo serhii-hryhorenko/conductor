@@ -1,7 +1,6 @@
 package ua.edu.ukma.conductor;
 
 import ua.edu.ukma.conductor.state.WorkflowState;
-import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.step.WorkflowStepOrBuilder;
 import ua.edu.ukma.conductor.step.workflow.WorkflowBuilder;
 import ua.edu.ukma.conductor.step.workflow.graph.GraphWorkflowBuilder;
@@ -23,7 +22,7 @@ public final class Workflows {
     }
 
     public static <S extends WorkflowState<S>>
-    GraphWorkflowBuilder<S> builder(WorkflowStep<S> initialStep) {
-        return new GraphWorkflowBuilder<>(initialStep);
+    GraphWorkflowBuilder<S> builder() {
+        return new GraphWorkflowBuilder<>();
     }
 }

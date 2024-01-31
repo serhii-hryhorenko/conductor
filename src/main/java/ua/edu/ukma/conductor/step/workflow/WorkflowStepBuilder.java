@@ -5,12 +5,13 @@ import ua.edu.ukma.conductor.step.WorkflowStep;
 import ua.edu.ukma.conductor.step.WorkflowStepOrBuilder;
 import ua.edu.ukma.conductor.task.Task;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends WorkflowStepOrBuilder<S> {
+import static java.util.Objects.requireNonNull;
+
+public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> implements WorkflowStepOrBuilder<S> {
     private final Task<P, V> task;
     private String name;
     private Function<S, P> stateMapper;
@@ -48,12 +49,18 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> extends Workf
     }
 
     public Step<S, P, V> build() {
-        Objects.requireNonNull(stateMapper);
-        return new Step<>(task, name, stateMapper, stateReducer, successHandler, errorHandler);
+        return new Step<>(
+                requireNonNull(task),
+                name,
+                requireNonNull(stateMapper),
+                requireNonNull(stateReducer),
+                successHandler,
+                errorHandler
+        );
     }
 
     @Override
-    protected WorkflowStep<S> toStep() {
+    public WorkflowStep<S> toStep() {
         return build();
     }
 }

@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Step<S extends WorkflowState<S>, P, V> extends WorkflowStep<S> {
+public final class Step<S extends WorkflowState<S>, P, V> extends WorkflowStep<S> {
     private final Task<P, V> task;
     private final Function<S, P> stateProjector;
 
@@ -65,5 +65,28 @@ public class Step<S extends WorkflowState<S>, P, V> extends WorkflowStep<S> {
     private Optional<Consumer<S>> stateReducerFor(V value) {
         return Optional.ofNullable(stateReducer)
                 .map(reducer -> state -> reducer.accept(state, value));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Step<?, ?, ?> step)) return false;
+
+        if (!task.equals(step.task)) return false;
+        if (!stateProjector.equals(step.stateProjector)) return false;
+        if (!stateReducer.equals(step.stateReducer)) return false;
+        if (!Objects.equals(successHandler, step.successHandler))
+            return false;
+        return Objects.equals(errorHandler, step.errorHandler);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = task.hashCode();
+        result = 31 * result + stateProjector.hashCode();
+        result = 31 * result + stateReducer.hashCode();
+        result = 31 * result + (successHandler != null ? successHandler.hashCode() : 0);
+        result = 31 * result + (errorHandler != null ? errorHandler.hashCode() : 0);
+        return result;
     }
 }

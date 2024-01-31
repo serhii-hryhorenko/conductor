@@ -62,13 +62,13 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
         var firstStep = Step.<TestState, TestStateProjection, String>forTask(payload -> Result.ok(firstStepResult))
                 .named("First step")
                 .thatAccepts(state -> new TestStateProjection(state.name()))
-                .reducesState(TestState::setName)
-                .build();
+                .reducesState(TestState::setName);
+
         var secondStep = Step.<TestState, Void, Integer>forTask(unused -> Result.ok(secondStepResult))
                 .named("Second step")
                 .thatAccepts(noPayload())
-                .reducesState(TestState::setAge)
-                .build();
+                .reducesState(TestState::setAge);
+
         var thirdStep = Step.<TestState, TestState, TestState>forTask(thirdTask)
                 .named("Third step")
                 .thatAccepts(workflowState())
@@ -76,12 +76,11 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                     state.setName(value.name());
                     state.setAge(value.age());
                 })
-                .onSuccess(successHandler)
-                .build();
-
+                .onSuccess(successHandler);
 
         // https://dreampuf.github.io/GraphvizOnline/#digraph%20G%20%7B%0A%20%20%20%20%22First%20step%22%20-%3E%20%22Second%20step%22%3B%0A%20%20%20%20%22First%20step%22%20-%3E%20%22Third%20step%22%3B%0A%20%20%20%20%22Second%20step%22%20-%3E%20%22Third%20step%22%3B%0A%7D
-        Workflow<TestState> workflow = Workflows.builder(firstStep)
+        Workflow<TestState> workflow = Workflows.<TestState>builder()
+                .named("Test Graph Workflow")
                 .addStep(thirdStep, dependsOn(firstStep, secondStep))
                 .addStep(secondStep, dependsOn(firstStep))
                 .attachObservers(testStateTestObserver)
@@ -131,7 +130,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 (observer, state) -> assertThat(state).isEqualTo(secondStepResult)
         );
 
-        Workflow<TestState> workflow = Workflows.builder(firstStep)
+        Workflow<TestState> workflow = Workflows.<TestState>builder()
                 .named("Test workflow")
                 .addStep(thirdStep, dependsOn(firstStep, secondStep))
                 .addStep(secondStep, dependsOn(firstStep))
@@ -167,7 +166,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .onSuccess(successHandler)
                 .build();
 
-        Workflow<TestState> workflow = Workflows.builder(firstStep)
+        Workflow<TestState> workflow = Workflows.<TestState>builder()
                 .addStep(secondStep, dependsOn(firstStep))
                 .addStep(thirdStep, dependsOn(secondStep))
                 .build();
@@ -208,7 +207,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .onSuccess(successHandler)
                 .build();
 
-        Workflow<TestState> workflow = Workflows.builder(firstStep)
+        Workflow<TestState> workflow = Workflows.<TestState>builder()
                 .addStep(secondStep, dependsOn(firstStep))
                 .addStep(thirdStep, dependsOn(secondStep))
                 .build();
