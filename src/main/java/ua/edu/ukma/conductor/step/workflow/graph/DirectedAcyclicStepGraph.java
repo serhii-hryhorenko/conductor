@@ -5,7 +5,7 @@ import ua.edu.ukma.conductor.step.WorkflowStep;
 
 import java.util.*;
 
-public final class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
+public final    class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     private final Map<WorkflowStep<S>, List<WorkflowStep<S>>> adjacencyList;
 
     DirectedAcyclicStepGraph() {
@@ -31,8 +31,15 @@ public final class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
 
         adjacencyList.get(from).add(to);
 
-        if (hasCycle()) {
-            throw new IllegalArgumentException("Adding this edge would create a cycle in the graph.");
+        try {
+            WorkflowStep<S> start = startVertex();
+
+            if (hasCycle(start)) {
+                String errMessage = String.format("`%s -> %s` creates a cycle in the graph.", from, to);
+                throw new IllegalArgumentException(errMessage);
+            }
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Graph has not a step to begin with (independent step).");
         }
     }
 
@@ -40,7 +47,7 @@ public final class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         return adjacencyList.keySet().stream()
                 .filter(step -> adjacencyList.values().stream().noneMatch(list -> list.contains(step)))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Graph has no start vertex."));
+                .orElseThrow(() -> new IllegalStateException("Graph contains cycle."));
     }
 
     List<WorkflowStep<S>> topologicalSort() {
@@ -70,10 +77,10 @@ public final class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         sortedSteps.add(step);
     }
 
-    private boolean hasCycle() {
+    private boolean hasCycle(WorkflowStep<S> start) {
         HashSet<WorkflowStep<S>> visited = new HashSet<>();
 
-        return hasCycle(startVertex(), visited);
+        return hasCycle(start, visited);
     }
 
     private boolean hasCycle(WorkflowStep<S> step,
