@@ -1,6 +1,7 @@
 package ua.edu.ukma.conductor.step.workflow;
 
 import org.junit.jupiter.api.Test;
+import ua.edu.ukma.conductor.state.WorkflowState;
 
 import java.util.function.Consumer;
 
@@ -24,7 +25,7 @@ class WorkflowStateTest {
         TestState initialState = new TestState("test", 42);
         Consumer<TestState> stateReducer = state -> state.setAge(19);
 
-        TestState mutatedState = initialState.reduce(stateReducer);
+        TestState mutatedState = WorkflowState.reduce(initialState, stateReducer);
 
         assertNotSame(initialState, mutatedState);
         assertEquals(19, mutatedState.age());

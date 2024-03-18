@@ -2,7 +2,7 @@ package ua.edu.ukma.conductor.step.workflow;
 
 import ua.edu.ukma.conductor.state.WorkflowState;
 
-public class TestState extends WorkflowState<TestState> {
+public class TestState implements WorkflowState<TestState> {
     private String name;
     private int age;
 

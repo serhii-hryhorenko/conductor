@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
-    private final Logger logger = LoggerFactory.getLogger(LinearWorkflow.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinearWorkflow.class);
 
     private final Iterator<WorkflowStep<S>> stepsIterator;
 
@@ -34,13 +34,13 @@ public final class LinearWorkflow<S extends WorkflowState<S>> extends Workflow<S
             Result<S> reducedState = currentStep.execute(currentState);
 
             if (reducedState.hasError()) {
-                logger.error("[{}] – Workflow failed on step `{}` with error `{}`",
+                logger.error("[{}] – Workflow failed on step `{}` with error:",
                         name(), currentStep, reducedState.error());
                 return Result.error(reducedState.error());
             }
 
-            notifyObservers(reducedState.value());
-            currentState = reducedState.value();
+            notifyObservers(reducedState.unwrap());
+            currentState = reducedState.unwrap();
 
             logger.debug("[{}] – Step `{}` finished", name(), currentStep);
             logger.debug("[{}] – Current state: {}", name(), currentState);

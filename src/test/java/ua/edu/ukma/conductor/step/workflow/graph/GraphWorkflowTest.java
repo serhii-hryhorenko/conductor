@@ -10,8 +10,9 @@ import ua.edu.ukma.conductor.step.workflow.Step;
 import ua.edu.ukma.conductor.step.workflow.TestState;
 import ua.edu.ukma.conductor.step.workflow.TestStateProjection;
 import ua.edu.ukma.conductor.step.workflow.Workflow;
-import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.task.Task;
+import ua.edu.ukma.conductor.task.async.AsyncTask;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,8 +49,8 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
         int secondStepResult = 5;
         TestState thirdStepResult = new TestState("Agnis", 16);
 
-        AsyncTask<TestState, TestState> thirdTask = AsyncTask.fromFuture(
-                () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
+        AsyncTask<TestState, TestState> thirdTask = AsyncTask.from((payload, result) -> scheduledExecutorService.schedule(
+                () -> result.complete(Result.ok(thirdStepResult)), 1L, TimeUnit.MILLISECONDS)
         );
 
         TestObserver<TestState> testStateTestObserver = assertions(
@@ -98,10 +99,10 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
 
         String firstStepResult = "Jane";
         int thirdStepResult = 5;
-        TestState secondStepResult = new TestState("Agnis", 16);
 
-        AsyncTask<TestState, TestState> secondTask = AsyncTask.fromFuture(
-                () -> scheduledExecutorService.schedule(() -> secondStepResult, 1L, TimeUnit.SECONDS)
+        TestState secondStepResult = new TestState("Agnis", 16);
+        Task<TestState, TestState> secondTask = AsyncTask.from((payload, result) -> scheduledExecutorService.schedule(
+                () -> result.complete(Result.ok(secondStepResult)), 1L, TimeUnit.SECONDS)
         );
 
         var firstStep = Step.<TestState, TestStateProjection, String>forTask(payload -> Result.ok(firstStepResult))
@@ -110,7 +111,7 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 .reducesState(TestState::setName)
                 .build();
         var secondStep = Step.<TestState, TestState, TestState>forTask(secondTask)
-                .named("Third step")
+                .named("Second step")
                 .thatAccepts(workflowState())
                 .reducesState((state, value) -> {
                     state.setName(value.name());
@@ -118,26 +119,26 @@ class GraphWorkflowTest extends DefaultTestConfiguration {
                 })
                 .build();
         var thirdStep = Step.<TestState, Void, Integer>forTask(unused -> Result.ok(thirdStepResult))
-                .named("Second step")
+                .named("Third step")
                 .thatAccepts(noPayload())
                 .reducesState(TestState::setAge)
                 .build();
-
-        TestObserver<TestState> testStateTestObserver = assertions(
-                (observer, state) -> assertThat(state).isEqualTo(initialState),
-                (observer, state) -> assertThat(state.name()).isEqualTo(firstStepResult),
-                (observer, state) -> assertThat(state.age()).isEqualTo(thirdStepResult),
-                (observer, state) -> assertThat(state).isEqualTo(secondStepResult)
-        );
 
         Workflow<TestState> workflow = Workflows.<TestState>builder()
                 .named("Test workflow")
                 .addStep(thirdStep, dependsOn(firstStep, secondStep))
                 .addStep(secondStep, dependsOn(firstStep))
-                .attachObservers(testStateTestObserver)
                 .build();
 
-        testStateTestObserver.testWorkflow(workflow, initialState);
+        Result<TestState> result = workflow.execute(initialState);
+
+        assertWithMessage("Workflow should succeed")
+                .that(result.hasError())
+                .isFalse();
+
+        assertWithMessage("Workflow should succeed with correct state")
+                .that(result.unwrap())
+                .isEqualTo(new TestState("Agnis", 5));
     }
 
     @Test

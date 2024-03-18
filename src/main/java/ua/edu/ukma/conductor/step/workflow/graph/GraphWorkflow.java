@@ -19,25 +19,24 @@ import java.util.concurrent.locks.ReentrantLock;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S> {
-    private final Logger logger = LoggerFactory.getLogger(GraphWorkflow.class);
+    private static final Logger logger = LoggerFactory.getLogger(GraphWorkflow.class);
 
-    private final DirectedAcyclicStepGraph<S> graph;
+    private final DependencyDAG<S> graph;
 
     private final ReentrantLock lock = new ReentrantLock();
     private S state;
 
     private boolean failed = false;
 
-    GraphWorkflow(String name, DirectedAcyclicStepGraph<S> graph, List<WorkflowObserver<S>> workflowObservers) {
+    GraphWorkflow(String name, DependencyDAG<S> graph, List<WorkflowObserver<S>> workflowObservers) {
         super(name, workflowObservers);
         this.graph = graph;
     }
 
-    GraphWorkflow(DirectedAcyclicStepGraph<S> graph, List<WorkflowObserver<S>> workflowObservers) {
-        super(workflowObservers);
-        this.graph = graph;
-    }
-
+    /**
+     * Executes the workflow by traversing dependency graph.
+     * @return The result of the workflow.
+     */
     @Override
     public Result<S> execute(S initialState) {
         logger.info("[{}] – Starting workflow", name());
@@ -57,13 +56,13 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
     private Result<S> executeGraph(S state, WorkflowStep<S> currentStep, Set<WorkflowStep<S>> visited) {
         // If the step has already been visited, we can skip it.
         if (visited.contains(currentStep)) {
-            logger.debug("[{}] – Skipping step `{}`, because it has already been visited", name(), currentStep);
+            logger.info("[{}] – Skipping step `{}`, because it has already been visited", name(), currentStep);
             return Result.ok(state);
         }
 
         // If the workflow has failed, we can skip the rest of the steps.
         if (failed) {
-            logger.debug("[{}] – Skipping step `{}`, because the workflow has failed", name(), currentStep);
+            logger.info("[{}] – Skipping step `{}`, because the workflow has failed", name(), currentStep);
             return Result.ok(state);
         }
 
@@ -71,16 +70,16 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
         var result = currentStep.execute(state);
 
         if (result.hasError()) {
-            logger.error("[{}] – Step `{}` failed with error: {}", name(), currentStep, result.error());
+            logger.error("[{}] – Step `{}` failed with error: ", name(), currentStep, result.error());
             fail();
             return result;
         }
 
-        setState(result.value());
-        notifyObservers(result.value().copy());
+        setState(result.unwrap());
+        notifyObservers(result.unwrap().copy());
 
-        logger.debug("[{}] – Step `{}` finished successfully", name(), currentStep);
-        logger.debug("[{}] – Current state: {}", name(), state());
+        logger.info("[{}] – Step `{}` finished successfully", name(), currentStep);
+        logger.info("[{}] – Current state: {}", name(), state());
 
         CompletableFuture<Result<S>>[] futureResults = executeSubtasks(currentStep, visited);
         CompletableFuture.allOf(futureResults).join();
@@ -101,9 +100,11 @@ public final class GraphWorkflow<S extends WorkflowState<S>> extends Workflow<S>
     }
 
     private CompletableFuture<Result<S>>[] executeSubtasks(WorkflowStep<S> currentStep, Set<WorkflowStep<S>> visited) {
-        return graph.adjacentVertices(currentStep).stream()
+        CompletableFuture[] subtasks = graph.dependentSteps(currentStep).stream()
                 .map(step -> supplyAsync(() -> executeGraph(state(), step, visited)))
                 .toArray(CompletableFuture[]::new);
+
+        return (CompletableFuture<Result<S>>[]) subtasks;
     }
 
     private void fail() {

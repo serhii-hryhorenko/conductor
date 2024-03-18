@@ -17,14 +17,14 @@ public final class Step<S extends WorkflowState<S>, P, V> extends WorkflowStep<S
 
     private final BiConsumer<S, V> stateReducer;
     private final Consumer<V> successHandler;
-    private final Consumer<Throwable> errorHandler;
+    private final BiConsumer<S, Throwable> errorHandler;
 
-    protected Step(Task<P, V> task,
-                   String name,
-                   Function<S, P> stateProjector,
-                   BiConsumer<S, V> stateReducer,
-                   Consumer<V> successHandler,
-                   Consumer<Throwable> errorHandler) {
+    Step(Task<P, V> task,
+         String name,
+         Function<S, P> stateProjector,
+         BiConsumer<S, V> stateReducer,
+         Consumer<V> successHandler,
+         BiConsumer<S, Throwable> errorHandler) {
         super(name);
         this.task = task;
         this.stateProjector = stateProjector;
@@ -38,25 +38,36 @@ public final class Step<S extends WorkflowState<S>, P, V> extends WorkflowStep<S
         return new WorkflowStepBuilder<>(task);
     }
 
+    /**
+     * Executes the task and updates the state.
+     * @param state required argument to complete the task
+     * @return the updated state
+     */
     public Result<S> execute(S state) {
         P taskPayload = stateProjector.apply(state);
-        Result<V> taskResult = task.submit(taskPayload);
+        Result<V> taskResult = task.execute(taskPayload);
 
         if (taskResult.hasError()) {
-            consumeIfNotNull(errorHandler, taskResult.error());
+            consumeIfNotNull(errorHandler, state, taskResult.error());
             return Result.error(taskResult.error());
         }
 
-        consumeIfNotNull(successHandler, taskResult.value());
+        consumeIfNotNull(successHandler, taskResult.unwrap());
 
         return taskResult.toOptional()
                 .flatMap(this::stateReducerFor)
-                .map(state::reduce)
+                .map(reducer -> WorkflowState.reduce(state, reducer))
                 .map(Result::ok)
                 .orElse(Result.ok(state));
     }
 
-    private static <T> void consumeIfNotNull(Consumer<T> consumer, T value) {
+    private <T> void consumeIfNotNull(BiConsumer<S, T> consumer, S state, T value) {
+        if (Objects.nonNull(consumer)) {
+            consumer.accept(state, value);
+        }
+    }
+
+    private <T> void consumeIfNotNull(Consumer<T> consumer, T value) {
         if (Objects.nonNull(consumer)) {
             consumer.accept(value);
         }

@@ -65,7 +65,7 @@ class WorkflowTest extends DefaultTestConfiguration {
             notifyObservers(initialState);
 
             Result<TestState> result = testStep.execute(initialState);
-            notifyObservers(result.value());
+            notifyObservers(result.unwrap());
 
             return result;
         }

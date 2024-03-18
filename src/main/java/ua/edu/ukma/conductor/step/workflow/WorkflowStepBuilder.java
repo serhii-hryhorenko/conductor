@@ -16,8 +16,9 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> implements Wo
     private String name;
     private Function<S, P> stateMapper;
     private BiConsumer<S, V> stateReducer;
+
     private Consumer<V> successHandler;
-    private Consumer<Throwable> errorHandler;
+    private BiConsumer<S, Throwable> errorHandler;
 
     WorkflowStepBuilder(Task<P, V> task) {
         this.task = task;
@@ -43,7 +44,7 @@ public class WorkflowStepBuilder<S extends WorkflowState<S>, P, V> implements Wo
         return this;
     }
 
-    public WorkflowStepBuilder<S, P, V> onFail(Consumer<Throwable> failHandler) {
+    public WorkflowStepBuilder<S, P, V> onFail(BiConsumer<S, Throwable> failHandler) {
         this.errorHandler = failHandler;
         return this;
     }

@@ -11,7 +11,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
-class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
+class DependencyDAGTest extends DefaultTestConfiguration {
     @Mock
     private WorkflowStep<TestState> stepA;
     @Mock
@@ -23,10 +23,10 @@ class DirectedAcyclicStepGraphTest extends DefaultTestConfiguration {
     @Mock
     private WorkflowStep<TestState> stepE;
 
-    private DirectedAcyclicStepGraph<TestState> graph;
+    private DependencyDAG<TestState> graph;
 
     void setupAcyclicGraph() {
-        graph = new DirectedAcyclicStepGraph<>();
+        graph = new DependencyDAG<>();
 
         graph.addEdge(stepA, stepB);
         graph.addEdge(stepA, stepC);

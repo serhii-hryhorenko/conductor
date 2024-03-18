@@ -14,5 +14,5 @@ public interface Task<P, V> {
      *
      * @param payload required argument to complete the task
      */
-    Result<V> submit(P payload);
+    Result<V> execute(P payload);
 }

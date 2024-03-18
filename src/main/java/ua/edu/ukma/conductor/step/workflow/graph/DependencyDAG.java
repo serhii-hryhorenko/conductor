@@ -4,20 +4,38 @@ import ua.edu.ukma.conductor.state.WorkflowState;
 import ua.edu.ukma.conductor.step.WorkflowStep;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-public final    class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
+public final class DependencyDAG<S extends WorkflowState<S>> {
     private final Map<WorkflowStep<S>, List<WorkflowStep<S>>> adjacencyList;
 
-    DirectedAcyclicStepGraph() {
+    DependencyDAG() {
         this.adjacencyList = new HashMap<>();
     }
 
-    private void addVertex(WorkflowStep<S> step) {
-        adjacencyList.put(step, new ArrayList<>());
+    /**
+     * Returns the adjacent vertices of the given vertex.
+     */
+    private List<WorkflowStep<S>> adjacentSteps(WorkflowStep<S> vertex) {
+        return adjacencyList.get(vertex);
     }
 
-    List<WorkflowStep<S>> adjacentVertices(WorkflowStep<S> vertex) {
-        return adjacencyList.getOrDefault(vertex, List.of());
+    /**
+     * Returns the vertices that depend on the given vertex and ready to be executed.
+     */
+    public List<WorkflowStep<S>> dependentSteps(WorkflowStep<S> step) {
+        // We need to get the adjacent vertices of the given vertex.
+        // Then we need to ensure that the adjacent step is ready to be executed
+        // (i.e. all of its dependencies have been executed).
+
+        List<WorkflowStep<S>> adjacent = adjacentSteps(step).stream().toList();
+        Set<WorkflowStep<S>> adjacentDependants = adjacent.stream()
+                .flatMap(adj -> adjacentSteps(adj).stream())
+                .collect(Collectors.toSet());
+
+        return adjacent.stream()
+                .filter(adj -> !adjacentDependants.contains(adj))
+                .toList();
     }
 
     void addEdge(WorkflowStep<S> from, WorkflowStep<S> to) {
@@ -43,9 +61,13 @@ public final    class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
         }
     }
 
+    void addVertex(WorkflowStep<S> step) {
+        adjacencyList.put(step, new ArrayList<>());
+    }
+
     WorkflowStep<S> startVertex() {
         return adjacencyList.keySet().stream()
-                .filter(step -> adjacencyList.values().stream().noneMatch(list -> list.contains(step)))
+                .filter(step -> adjacencyList.values().stream().noneMatch(dependant -> dependant.contains(step)))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Graph contains cycle."));
     }
@@ -102,7 +124,7 @@ public final    class DirectedAcyclicStepGraph<S extends WorkflowState<S>> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof DirectedAcyclicStepGraph<?> that)) return false;
+        if (!(o instanceof DependencyDAG<?> that)) return false;
 
         return adjacencyList.equals(that.adjacencyList);
     }

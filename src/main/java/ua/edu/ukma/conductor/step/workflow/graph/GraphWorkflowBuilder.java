@@ -12,13 +12,13 @@ import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 public final class GraphWorkflowBuilder<S extends WorkflowState<S>> extends WorkflowBuilder<GraphWorkflowBuilder<S>, S> {
-    private final DirectedAcyclicStepGraph<S> graph;
+    private final DependencyDAG<S> graph;
     private WorkflowStep<S> lastAddedStep;
 
     private boolean synchronous = false;
 
     public GraphWorkflowBuilder() {
-        this.graph = new DirectedAcyclicStepGraph<>();
+        this.graph = new DependencyDAG<>();
     }
 
     @Override
@@ -68,6 +68,6 @@ public final class GraphWorkflowBuilder<S extends WorkflowState<S>> extends Work
             return builder.named(name()).build();
         }
 
-        return new GraphWorkflow<>(graph, observers());
+        return new GraphWorkflow<>(name(), graph, observers());
     }
 }

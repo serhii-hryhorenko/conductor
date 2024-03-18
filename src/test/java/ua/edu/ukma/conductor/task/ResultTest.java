@@ -13,7 +13,7 @@ class ResultTest {
 
         assertTrue(result.isOk());
         assertFalse(result.hasError());
-        assertEquals(expectedValue, result.value());
+        assertEquals(expectedValue, result.unwrap());
     }
 
     @Test

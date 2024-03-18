@@ -10,8 +10,8 @@ import ua.edu.ukma.conductor.step.workflow.Step;
 import ua.edu.ukma.conductor.step.workflow.TestState;
 import ua.edu.ukma.conductor.step.workflow.TestStateProjection;
 import ua.edu.ukma.conductor.step.workflow.Workflow;
-import ua.edu.ukma.conductor.task.AsyncTask;
 import ua.edu.ukma.conductor.task.Result;
+import ua.edu.ukma.conductor.task.async.AsyncTask;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -45,8 +45,8 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
         int secondStepResult = 5;
         TestState thirdStepResult = new TestState("Agnis", 16);
 
-        AsyncTask<TestState, TestState> thirdTask = AsyncTask.fromFuture(
-                () -> scheduledExecutorService.schedule(() -> thirdStepResult, 1L, TimeUnit.MILLISECONDS)
+        AsyncTask<TestState, TestState> thirdTask = AsyncTask.from((payload, result) ->
+            scheduledExecutorService.schedule(() -> result.complete(Result.ok(thirdStepResult)), 1L, TimeUnit.MILLISECONDS)
         );
 
         TestObserver<TestState> testStateTestObserver = assertions(
@@ -56,7 +56,7 @@ class LinearWorkflowTest extends DefaultTestConfiguration {
                 (observer, state) -> assertThat(state).isEqualTo(thirdStepResult)
         );
 
-        Workflow<TestState> workflow = Workflows.linearWorkflow(
+        Workflow<TestState> workflow = Workflows.sequential(
                         Step.<TestState, TestStateProjection, String>forTask(payload -> Result.ok(firstStepResult))
                                 .thatAccepts(state -> new TestStateProjection(state.name()))
                                 .reducesState(TestState::setName),
